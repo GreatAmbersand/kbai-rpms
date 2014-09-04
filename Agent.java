@@ -26,7 +26,52 @@ public class Agent {
     //TODO: may need to keep a list of the problems that we solve to reweight in the future
     //could be a hashmap of problem : matrix< of graphs
 
+    //mappings
+    private HashMap<String, int[]> twoBy1_mapping;
+    private HashMap<String, int[]> twoBy2_mapping;
+    private HashMap<String, int[]> threeBy3_mapping;
+
     public Agent() {
+
+        //initialzie mapping
+        //2x1 problem mapping to 1x2
+        //array 1 [[A, B]]
+        //array 2 [[C, #]]
+        twoBy1_mapping = new HashMap<String, int[]>();
+        twoBy1_mapping.put("A", new int[]{0, 0});
+        twoBy1_mapping.put("B", new int[]{0, 1});
+        //overlap of C with A and # with B here. Will be two separate arrays.
+        twoBy1_mapping.put("C", new int[]{0, 0});
+        twoBy1_mapping.put("#", new int[]{0, 1});
+
+        /*
+        [
+            [A, B]
+            [C, #]
+        ]
+        */
+        twoBy2_mapping.put("A", new int[]{0, 0});
+        twoBy2_mapping.put("B", new int[]{0, 1});
+        twoBy2_mapping.put("C", new int[]{1, 0});
+        twoBy2_mapping.put("#", new int[]{1, 1});
+
+        /*
+        [
+            [A, B, C]
+            [D, E, F]
+            [G, H, #]
+        ]
+        */
+        threeBy3_mapping.put("A", new int[]{0, 0});
+        threeBy3_mapping.put("B", new int[]{0, 1});
+        threeBy3_mapping.put("C", new int[]{0, 2});
+        threeBy3_mapping.put("D", new int[]{1, 0});
+        threeBy3_mapping.put("E", new int[]{1, 1});
+        threeBy3_mapping.put("F", new int[]{1, 2});
+        threeBy3_mapping.put("G", new int[]{2, 0});
+        threeBy3_mapping.put("H", new int[]{2, 1});
+        threeBy3_mapping.put("#", new int[]{2, 2});
+
         //initialzie weights of types of edges here
     }
     /**
@@ -69,6 +114,11 @@ public class Agent {
             //deal with horizontal axis only
             
             //A is to B as C is to #
+            for(RavensFigure fig : figs){
+                //create graph for figure
+
+                for(RavensObject figObj : figs.get)
+            }
             RavensFigure figA = figs.get("A");
 
             //create two 2x1 matrices, 1 for the rule the other for the answer
@@ -76,7 +126,7 @@ public class Agent {
 
             //inverse the matrix from 2x1 to 1x2 to deal with horizontal axis easier
             Graph[][] mainMatrix = new Graph[1][2]
-            
+
             for(RavensObject robj : )
 
         } else if(problemType.equals("2x2")){
@@ -91,5 +141,16 @@ public class Agent {
             //perform meta-reasoning
         }
         return retVal;
+    }
+
+    private Graph createGraphForFigure(RavensFigure figure){
+        Graph retval = new Graph();
+        for(RavensObject figObj : figure.getObjects()){
+            //add a new vector if the vector doesn't already exist
+            /*for(RavensAttribute attr : figObj.getAttributes()){
+                //add a relationship edge
+            }*/
+        }
+        return retval;
     }
 }
