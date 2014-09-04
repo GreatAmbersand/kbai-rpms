@@ -22,6 +22,10 @@ public class Agent {
      * main().
      * 
      */
+
+    //TODO: may need to keep a list of the problems that we solve to reweight in the future
+    //could be a hashmap of problem : matrix< of graphs
+
     public Agent() {
         //initialzie weights of types of edges here
     }
@@ -51,6 +55,41 @@ public class Agent {
      * @return your Agent's answer to this problem
      */
     public String Solve(RavensProblem problem) {
-        return "1";
+
+        //default answer to 1
+        //this should only stay unchanged if we don't recognize the problemType
+        String retVal = "0";
+
+        //get the problem figures here so as to not call problem.getFigures() over and over
+        HashMap<String, RavensFigure> figs = problem.getFigures();
+
+        //handle each type of problem a little differently.
+        String problemType = problem.getProblemType();
+        if(problemType.equals("2x1")){
+            //deal with horizontal axis only
+            
+            //A is to B as C is to #
+            RavensFigure figA = figs.get("A");
+
+            //create two 2x1 matrices, 1 for the rule the other for the answer
+            String dimensions = problemType.split("x")
+
+            //inverse the matrix from 2x1 to 1x2 to deal with horizontal axis easier
+            Graph[][] mainMatrix = new Graph[1][2]
+            
+            for(RavensObject robj : )
+
+        } else if(problemType.equals("2x2")){
+            //deal with vertical and horizontal axes
+
+        } else if (problemType.equals("3x3")) {
+            //deal with vertical, horizontal, and diagonal axes
+        }
+        String answer = problem.checkAnswer(retVal);
+        //store answer somewhere to check after re-weighting
+        if(retVal.equals(answer)){
+            //perform meta-reasoning
+        }
+        return retVal;
     }
 }
