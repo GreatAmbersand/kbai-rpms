@@ -124,19 +124,37 @@ public class Agent {
             String problemType = problem.getProblemType();
             if(problemType.equals("2x1")){
 
-                //inverse the matrix from 2x1 to 1x2 to deal with horizontal axis easier
-                DirectedMultigraph[][] ruleMatrix = new DirectedMultigraph[1][2];
-                DirectedMultigraph[][] relationshipMatrix = new DirectedMultigraph[1][2];
+                RavensFigure figA = figs.get("A");
+                String figAObjecString = getFigureObjectString(figA);
+                
+                RavensFigure figB = figs.get("B");
+                String figBObjectString = getFigureObjectString(figB);
 
-                ArrayList<DirectedMultigraph> answerGraphs = new ArrayList<DirectedMultigraph>();
+                ArrayList<String> permutationsOfA = permute("", figAObjecString, new ArrayList<String>());
+
+                for(int i = 0; i<permutationsOfA.size(); i++){
+                    String permutation = permutationsOfA.get(i);
+                    Set interGraphRelationships = computeTransformations(permutation, figBObjectString, figA, figB);
+                }
+
+                //inverse the matrix from 2x1 to 1x2 to deal with horizontal axis easier
+                //use arrays when working with larger matrices for easy non-name compliant computing
+                //DirectedMultigraph[][] ruleMatrix = new DirectedMultigraph[1][2];
+                //DirectedMultigraph[][] relationshipMatrix = new DirectedMultigraph[1][2];
+                //Map<String, DirectedMultigraph> graphs = new HashMap<String, DirectedMultigraph>();
+
+                //ArrayList<DirectedMultigraph> answerGraphs = new ArrayList<DirectedMultigraph>();
+
                 //A is to B as C is to #            
-                for(RavensFigure fig : problem.getFigures().values()){
+                /*for(RavensFigure fig : problem.getFigures().values()){
 
                     String name = fig.getName();
 
                     //create graph for figure
                     //these don't include relationships so there shouldn't be multiple permutations
                     DirectedMultigraph graphedFigure = createGraphForFigure(fig);
+                    graphs.put(name, graphedFigure);
+
                     printGraph(name, graphedFigure);
                     
                     char[] chars = name.toCharArray();
@@ -153,20 +171,50 @@ public class Agent {
                         //place graphedFigure in set of possible answers
                         answerGraphs.add(graphedFigure);
                     }
-                }
+                }*/
+
+                //get list of vectors and their names
+
 
                 //count the number of relationship permutations for the rule graphs
+                /*DirectedMultigraph graphA = graphs.get("A");
+                DirectedMultigraph graphB = graphs.get("B");
 
-                //for(int i = 0; i<permutations; i++){}
-                    //deal with horizontal axis only
-                    int rowLength = ruleMatrix[0].length;
-                    //each row
-                    for(int i = 0; i<ruleMatrix.length; i++){
-                        for(int j=0; j<rowLength; j += 2){
-                            //ge nerate relationship with vertex mapping provided by next permutation
-                            generateRelationships(ruleMatrix[i][j], ruleMatrix[i][j+1]);
-                        }
+                Set<RavensObject> vectorsOfA = null;
+                Set<RavensObject> vectorsOfB = null;
+
+                StringBuffer vectorsOfASB = new StringBuffer();
+                StirngBuffer vectorsOfBSB = new StringBuffer();
+
+                if(graphA != null){
+                    vectorsOfA = graphA.vertexSet();
+                    Iterator<RavensObject> vectorsOfAIterator = vectorsOfA.iterator();
+                    //build a string of object names to use for permutations
+                    while(vectorsOfAIterator.hasNext()){
+                        RavensObject vectorOfA = vectorsOfAIterator.next();
+                        vectorsOfASB.append(vectorOfA.getName());
                     }
+                } else {
+                    System.out.println("**ERROR** Unable to retrieve graph A!");
+                }*/
+                
+                /*System.out.println("permutations of "+vectorsOfASB.toString());
+                for(int index = 0; index < permutations.size(); index++){
+                    System.out.println(permutations.get(index));
+                }*/
+
+                //deal with horizontal axis only
+                //relate adjacent graphs
+                /*int rowLength = ruleMatrix[0].length;
+                //each row
+                for(int i = 0; i<ruleMatrix.length; i++){
+                    //get all permutations for this graph
+
+                    for(int j=0; j<rowLength; j += 2){
+                        //ge nerate relationship with vertex mapping provided by next permutation
+                        generateRelationships(ruleMatrix[i][j], ruleMatrix[i][j+1]);
+                    }
+                }*/
                 //}
 
             } else if(problemType.equals("2x2")){
@@ -257,9 +305,15 @@ public class Agent {
 
     }
 
-    private Set<DirectedMultigraph> vectorCombinations(DirectedMultigraph one, DirectedMultigraph two){
-        //Set one.vertexSet();
-        return null;
+    private ArrayList<String> permute(String prefix, String left, ArrayList<String> placeHolder){
+        if(left.length() == 0){
+            placeHolder.add(prefix);
+        } else {
+            for(int i = 0; i<left.length(); i++){
+                permute(prefix + left.charAt(i), left.substring(0, i) + left.substring(i+1), placeHolder);
+            }
+        }
+        return placeHolder;
     }
 
     private void printGraph(String name, DirectedMultigraph<RavensObject, Edge> mg){
@@ -297,5 +351,125 @@ public class Agent {
             }
         }
         System.out.println(sb.toString());
+    }
+
+    private String getFigureObjectString(RavensFigure figure){
+        StringBuffer sb = new StringBuffer();
+        for(RavensObject figObj : figure.getObjects()){
+            //TODO: REVISE IF OBJECT NAMES BECOME MORE THAN 1 CHARACTER
+            sb.add(figObj.getName());
+        }
+    }
+
+    private Map<String, ArrayList<String>> computeTransformations(String permutation, String relateTo, RavensFigure figA, RavensFigure figB){
+        //could be ArrayList<ArrayList<String>>
+        //the object name isn't necessary if we are testing all permutations
+        Map<String, ArrayList<String>> realationships = new HashMap<String, ArrayList<String>>();
+        //put objects into map for easy lookup
+        Map<String, RavensObject> figAObjects = objectsToMap(figA.getObjects());
+        Map<String, RavensObject> figBObjects = objectsToMap(figB.getObjects());
+        //TODO:Make sure to check the size of permuatation and relateTo
+        char[] aObjNames = permutation.toCharArray();
+        char[] bObjNames = relateTo.toCharArray();
+        for(int i=0; i<aObjNames.length; i++){
+            
+            ArrayList<String> transformations = new ArrayList<String>();
+            
+            if(i > bObjNames.length-1){
+                transformations.add("deleted");
+            } else {
+                //find transformations
+                RavensObject objInA = figAObjects.get(String.valueOf(aObjNames[i]));
+                RavensObject objInB = figBObjects.get(String.valueOf(bObjNames[i]));
+                
+                Map<String, RavensAttribute> objAAttrs = attributeToMap(objInA.getAttributes());
+                Map<String, RavensAttribute> objBAttrs = attributeToMap(objInB.getAttributes());
+
+                for(Map.Entry<String, RavensAttribute> attribute : objAAttrs.entrySet()){
+                    String key = attribute.getKey();
+                    String val = attribute.getValue().getValue();
+
+                    if(objBAttrs.get(key) != null){
+                        //analyze attribute and create relationship
+                        String valForB = objBAttrs.get(key).getValue();
+                        switch(key){
+                            case "shape":
+                                if(!val.equals(valForB)){
+                                    transformations.add("changed shape");
+                                }
+                                break;
+                            case "fill":
+                                //could be list here
+                                break;
+                            case "size":
+                                if(!val.equals(valForB)){
+                                    if((val.equals("small") && (valForB.equals("medium") || valForB.equals("large"))) || (val.equals("medium") && valForB.equals("large"))){
+                                        //TODO: Add size it grew?? grew to large grew to medium
+                                        //TODO: calculate number of size it grew or shrunk 1 or 2
+                                        transformations.add("grew");
+                                    } else if((val.equals("large") && (valForB.equals("medium") || valForB.equals("small"))) || (val.equals("medium") && valForB.equals("small"))){
+                                        transformations.add("shrunk");
+                                    }
+                                }
+                                break;
+                            case "inside":
+                                break;
+                            case "above":
+                                break;
+                            case "overlaps":
+                                break;
+                            case "angle":
+                                int angleA = Integer.parseInt(val);
+                                int angleB = Integer.parseInt(valForB);
+                                int angleRotated = 0;
+                                if(angleA != angleB){
+                                    //this allows for negative rotations
+                                    angleRotated = angleB - angleA;
+                                } else {
+                                    angleRotated = 0;
+                                }
+                                transformations.add("rotated:"+angleRotated);
+                                break;
+                            case "left-of":
+                                break;
+                            case "vertical-flip":
+                                if(!val.equals(valForB)){
+                                    transformations.add("flipped:vertical");
+                                }
+                                break;
+                            default:
+                                break;
+                        }
+                    } else {
+                        //attribute in A not in B
+                        System.out.println("Attribute "+key+" in object "+objInA.getName()+" in first graph but not in second object "+objInB.getName());
+                    }
+                    if(transformations.size() == 0){
+                        //this is what we want to see
+                        transformations.add("unchanged");
+                    }
+                }
+            }
+        }
+        if(permutation.length() < relateTo.length()){
+            //an object was added to the frame
+
+        }
+    }
+
+    private Map<String, RavensObject> objectsToMap(ArrayList<RavensObject> ravensObjects){
+        Map<String, RavensObject> ravensObjectsMap = new HashMap<String, RavensObject>();
+        for(int i=0; i<ravensObjects.size(); i++){
+            ravensObjectsMap.put(ravensObjects.get(i).getName(), ravensObjects.get(i));
+        }
+        return ravensObjectsMap;
+    }
+
+    private Map<String, RavensAttribute> attributeToMap(ArrayList<RavensAttribute> ravensAttributes){
+        Map<String, RavensAttribute> ravensAttributeMap = new HashMap<String, RavensAttribute>();
+        for(int i=0; i<ravensAttributes.size(); i++){
+            ravensAttributeMap.put(ravensAttributes.get(i).getName(), ravensAttributes.get(i));
+        }
+        return ravensAttributeMap;
     }
 }
