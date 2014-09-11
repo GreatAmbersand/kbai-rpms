@@ -36,6 +36,10 @@ public class Agent {
     private HashMap<String, int[]> twoBy1_mapping;
     private HashMap<String, int[]> twoBy2_mapping;
     private HashMap<String, int[]> threeBy3_mapping;
+    private HashMap<String, Integer> shapeSizeMapping;
+    private HashMap<String, Integer> transformationWeights;
+
+    private final int UNKNOW_SIZE = -1000;
 
     private ArrayList<String> intraGraphRelationships;
 
@@ -82,6 +86,20 @@ public class Agent {
         threeBy3_mapping.put("H", new int[]{2, 1});
         threeBy3_mapping.put("#", new int[]{2, 2});
 
+        shapeSizeMapping = new HashMap<String, Integer>();
+        shapeSizeMapping.put("small", 1);
+        shapeSizeMapping.put("medium", 2);
+        shapeSizeMapping.put("large", 3);
+
+        transformationWeights = new HashMap<String, Integer>();
+        transformationWeights.put("unchanged", 5);
+        //TODO: how often does reflected get used
+        transformationWeights.put("reflected", 4);
+        transformationWeights.put("rotated", 3);
+        transformationWeights.put("scaled", 2);
+        transformationWeights.put("deleted", 1);
+        transformationWeights.put("changedShape", 0);
+
         intraGraphRelationships = new ArrayList<String>(Arrays.asList(new String[]{"inside", "above", "overlaps", "left-of"}));
 
         //initialzie weights of types of edges here
@@ -125,16 +143,50 @@ public class Agent {
             if(problemType.equals("2x1")){
 
                 RavensFigure figA = figs.get("A");
-                String figAObjecString = getFigureObjectString(figA);
+                String figAObjectString = getFigureObjectString(figA);
                 
                 RavensFigure figB = figs.get("B");
                 String figBObjectString = getFigureObjectString(figB);
 
-                ArrayList<String> permutationsOfA = permute("", figAObjecString, new ArrayList<String>());
+                RavensFigure figC = figs.get("C");
+                String figCObjectString = getFigureObjectString(figC);
 
+                ArrayList<String> permutationsOfA = permute("", figAObjectString, new ArrayList<String>());
+                ArrayList<String> permutationsOfC = permute("", figCObjectString, new ArrayList<String>());
+
+                Map<String, String> answerObjectStrings = new HashMap<String, String>();
+                for(Map.Entry<String, RavensFigure> figEntry : figs.entrySet()){
+                    try{
+                        Integer.parseInt(figEntry.getKey());
+
+                        System.out.println("Adding "+figEntry.getKey()+" to answer set");
+
+                        String tempObjectString = getFigureObjectString(figEntry.getValue());
+                        answerObjectStrings.put(figEntry.getKey(), tempObjectString);
+
+                    } catch(Exception e){}
+                }
+
+                double bestScore = 0.0;
                 for(int i = 0; i<permutationsOfA.size(); i++){
                     String permutation = permutationsOfA.get(i);
-                    Set interGraphRelationships = computeTransformations(permutation, figBObjectString, figA, figB);
+                    Map<String, ArrayList<String>> permAtoB = computeTransformations(permutation, figBObjectString, figA, figB);
+                    //double score = scoreTransformations(interGraphRelationships);
+                    for(int j = 0; j<permutationsOfC.size(); j++){
+                        String permutationOfC = permutationsOfC.get(j);
+                        for(Map.Entry<String, String> answerEntry : answerObjectStrings.entrySet()){
+                            String answerObjectString = answerEntry.getValue();
+                            Map<String, ArrayList<String>> cToDRelationships = computeTransformations(permutationsOfC.get(j), answerObjectString, figC, figs.get(answerEntry.getKey()));
+                            double score = scoreTransformations(permutation, permAtoB, permutationOfC, cToDRelationships);
+                            System.out.println(""+permutation+" -> "+figBObjectString+" : "+permutationOfC+" -> ("+answerEntry.getKey()+")"+answerObjectString+" scored "+score);
+                            if(score > bestScore){
+                                bestScore = score;
+                                System.out.println(""+score+" > "+bestScore+". switching current answer to "+answerEntry.getKey());
+                                retVal = answerEntry.getKey();
+                            }
+                            //double scoreTransformations(cToDRelationships);
+                        }
+                    }
                 }
 
                 //inverse the matrix from 2x1 to 1x2 to deal with horizontal axis easier
@@ -235,6 +287,7 @@ public class Agent {
         } catch (Exception e){
             e.printStackTrace();
         }
+        System.out.println("returning "+retVal);
         return retVal;
     }
 
@@ -357,27 +410,31 @@ public class Agent {
         StringBuffer sb = new StringBuffer();
         for(RavensObject figObj : figure.getObjects()){
             //TODO: REVISE IF OBJECT NAMES BECOME MORE THAN 1 CHARACTER
-            sb.add(figObj.getName());
+            sb.append(figObj.getName());
         }
+        return sb.toString();
     }
 
     private Map<String, ArrayList<String>> computeTransformations(String permutation, String relateTo, RavensFigure figA, RavensFigure figB){
         //could be ArrayList<ArrayList<String>>
         //the object name isn't necessary if we are testing all permutations
-        Map<String, ArrayList<String>> realationships = new HashMap<String, ArrayList<String>>();
+        Map<String, ArrayList<String>> relationships = new HashMap<String, ArrayList<String>>();
         //put objects into map for easy lookup
         Map<String, RavensObject> figAObjects = objectsToMap(figA.getObjects());
         Map<String, RavensObject> figBObjects = objectsToMap(figB.getObjects());
         //TODO:Make sure to check the size of permuatation and relateTo
         char[] aObjNames = permutation.toCharArray();
         char[] bObjNames = relateTo.toCharArray();
+        System.out.println("objects in A "+aObjNames.length+" objInB "+bObjNames.length);
         for(int i=0; i<aObjNames.length; i++){
             
             ArrayList<String> transformations = new ArrayList<String>();
             
-            if(i > bObjNames.length-1){
+            if(i >= bObjNames.length){
+                System.out.println("adding deleted");
                 transformations.add("deleted");
             } else {
+                System.out.println("finding transformations");
                 //find transformations
                 RavensObject objInA = figAObjects.get(String.valueOf(aObjNames[i]));
                 RavensObject objInB = figBObjects.get(String.valueOf(bObjNames[i]));
@@ -389,27 +446,47 @@ public class Agent {
                     String key = attribute.getKey();
                     String val = attribute.getValue().getValue();
 
+                    //TODO:Check for attributes in B and not A
+                    //TODO:Separate positional transformations from physical transformations
                     if(objBAttrs.get(key) != null){
                         //analyze attribute and create relationship
                         String valForB = objBAttrs.get(key).getValue();
                         switch(key){
                             case "shape":
                                 if(!val.equals(valForB)){
-                                    transformations.add("changed shape");
+                                    transformations.add("changedShape:"+valForB);
                                 }
                                 break;
                             case "fill":
-                                //could be list here
+                                //TODO:Make a Set. Should be unique values.
+                                List<String> aFills = new ArrayList(Arrays.asList(val.split(",")));
+
+                                if(valForB != null){
+                                    List<String> bFills = new ArrayList(Arrays.asList(valForB.split(",")));
+                                    for(String aFill : aFills){
+                                        if(!(bFills.contains(aFill))){
+                                            transformations.add("fill:removed:"+aFill);
+                                        }
+                                    }
+                                    for(String bFill : bFills){
+                                        if(!(aFills.contains(bFill))){
+                                            transformations.add("fill:added:"+bFill);
+                                        }
+                                    }
+                                } else {
+                                    for(String aFill : aFills){
+                                        transformations.add("fill:added:"+aFill);
+                                    }
+                                }
                                 break;
                             case "size":
-                                if(!val.equals(valForB)){
-                                    if((val.equals("small") && (valForB.equals("medium") || valForB.equals("large"))) || (val.equals("medium") && valForB.equals("large"))){
-                                        //TODO: Add size it grew?? grew to large grew to medium
-                                        //TODO: calculate number of size it grew or shrunk 1 or 2
-                                        transformations.add("grew");
-                                    } else if((val.equals("large") && (valForB.equals("medium") || valForB.equals("small"))) || (val.equals("medium") && valForB.equals("small"))){
-                                        transformations.add("shrunk");
-                                    }
+                                if(valForB != null){
+                                    val = val.trim().toLowerCase();
+                                    valForB = valForB.trim().toLowerCase();
+                                    int sizeChange = calculateSizeChange(val, valForB);
+                                    if(sizeChange != 0 && sizeChange != UNKNOW_SIZE){
+                                        transformations.add("scaled:"+sizeChange);
+                                    } 
                                 }
                                 break;
                             case "inside":
@@ -434,7 +511,7 @@ public class Agent {
                                 break;
                             case "vertical-flip":
                                 if(!val.equals(valForB)){
-                                    transformations.add("flipped:vertical");
+                                    transformations.add("reflected:vertical");
                                 }
                                 break;
                             default:
@@ -450,11 +527,13 @@ public class Agent {
                     }
                 }
             }
+            relationships.put(String.valueOf(aObjNames[i]), transformations);
         }
         if(permutation.length() < relateTo.length()){
-            //an object was added to the frame
-
+            //TODO:an object was added to the frame
+            //find a way to come up with a random key
         }
+        return relationships;
     }
 
     private Map<String, RavensObject> objectsToMap(ArrayList<RavensObject> ravensObjects){
@@ -471,5 +550,155 @@ public class Agent {
             ravensAttributeMap.put(ravensAttributes.get(i).getName(), ravensAttributes.get(i));
         }
         return ravensAttributeMap;
+    }
+
+    private int calculateSizeChange(String a, String b){
+        int retval = UNKNOW_SIZE;
+        if(shapeSizeMapping.containsKey(a) && shapeSizeMapping.containsKey(b)){
+            retval = shapeSizeMapping.get(b) - shapeSizeMapping.get(a);
+        } 
+        return retval;
+        /*if(!val.equals(valForB)){
+            if((val.equals("small") && (valForB.equals("medium") || valForB.equals("large"))) || (val.equals("medium") && valForB.equals("large"))){
+                int newSize = shapeSizeMapping.get(valForB);
+                int originalSize = shapeSizeMapping.get(val);
+                int sizeChanged = null;
+                if(newSize != null && originalSize != null){
+                    sizeChanged = newSize - originalSize;
+                }
+                if(sizeChanged != null){
+                    transformations.add("grew:"+sizeChanged);
+                }
+            } else if((val.equals("large") && (valForB.equals("medium") || valForB.equals("small"))) || (val.equals("medium") && valForB.equals("small"))){
+                int newSize = shapeSizeMapping.get(valForB);
+                int originalSize = shapeSizeMapping.get(val);
+                int sizeChanged = null;
+                if(newSize != null && originalSize != null){
+                    sizeChanged = newSize - originalSize;
+                }
+                if(sizeChanged != null){
+                    transformations.add("grew:"+sizeChanged);
+                }
+                transformations.add("shrunk");
+            }
+        }*/
+    }
+
+    /**
+    * Score the relationships described in the list
+    * 
+    */
+    private double scoreTransformations(ArrayList<String> transformations){
+        double score = 0.0;
+        for(String transformation : transformations){
+            String transformationName = null;
+            if(transformation.contains(":")){
+                String[] transformationData = transformation.split(":");
+                if(transformationData.length >= 1){
+                    transformationName = transformationData[0];
+                }
+            }
+            if(transformationName != null){
+                if(transformationWeights.containsKey(transformationName)){
+                    score += transformationWeights.get(transformationName);
+                }
+            }
+        }
+        return score;
+    }
+
+    private double scoreTransformations(String fig1, Map<String, ArrayList<String>> fig1Map, String fig2, Map<String, ArrayList<String>> fig2Map){
+        double score = 0;
+        char[] fig1Objs = fig1.toCharArray();
+        int objCountIn1 = fig1Objs.length;
+
+        char[] fig2Objs = fig2.toCharArray();
+        int objCountIn2 = fig2Objs.length;
+
+        for(Map.Entry<String, ArrayList<String>> entry : fig1Map.entrySet()){
+            for(String s : entry.getValue()){
+                System.out.println(""+entry.getKey()+" ---- "+s+" ---- >");
+            }
+        }
+
+        for(Map.Entry<String, ArrayList<String>> entry : fig2Map.entrySet()){
+            for(String s : entry.getValue()){
+                System.out.println(""+entry.getKey()+" ---- "+s+" ---- >");
+            }
+        }
+
+        if(objCountIn1 != objCountIn2){
+            System.out.println(""+objCountIn1+" objects in figure 1 and "+objCountIn2+" in fig 2");
+            System.out.println("Unhandled differnce in number of objects");
+        }
+
+        for(int i = 0; i<fig1Objs.length; i++){
+            System.out.println("Getting relationships for "+fig1Objs[i]);
+            ArrayList<String> f1Relationships = fig1Map.get(String.valueOf(fig1Objs[i]));
+
+            ArrayList<String> f2Relationships = null;
+            if(i < fig2Objs.length){
+                System.out.println(String.valueOf(fig2Objs[i]));
+                System.out.println(fig2Map.get(String.valueOf(fig2Objs[i])));
+                //create new array list so that we can modify w/o reprocaution
+                f2Relationships = new ArrayList<String>(fig2Map.get(String.valueOf(fig2Objs[i])));
+            }
+            if(f1Relationships != null){
+                int normalizationFactor = f1Relationships.size();
+                if(f2Relationships != null){
+                    for(String rIn1 : f1Relationships){
+                        String rIn1Name = null;
+                        if(rIn1.contains(":")){
+                            String[] rs = rIn1.split(":");
+                            rIn1Name = rs[0];
+                        } else {
+                            rIn1Name = rIn1;
+                        }
+                        boolean matchfound = false;
+                        for(String rIn2 : f2Relationships){
+                            //ArrayList<String> matches = 
+                            if(rIn2.contains(rIn1Name)){
+                                System.out.println("Found a match!! "+rIn1+" vs. "+rIn2);
+                                //TODO: Refine match to account for more details (how well do the relationships match)
+                                //TODO: make sure that if we match more than one we take the best match
+                                score += 1.0 / normalizationFactor;
+                                matchfound = true;
+                                //remove the relationship so we don't match it agains
+                                f2Relationships.remove(rIn2);
+                                //break so we don't multi match.
+                                break;
+                            }
+                        }
+                        if(!matchfound){
+                            System.out.println("Missing corresponding "+rIn1+" relationship");
+                        }
+                    }
+                    
+                    //there are unmatched object transformations
+                    if(f2Relationships.size() > 0){
+                        System.out.println("Extra relationships in fig2");
+                        for(String s : f2Relationships){
+                            System.out.println(s);
+                        }
+                        int extraTransformFactor = normalizationFactor + f2Relationships.size();
+                        score -= (1.0/extraTransformFactor);
+                    }
+                } else {
+                    //there were less figures in the next corresponding representation
+                    //score += (transformationWeights.get("deleted")/objCountIn1);
+                    System.out.println("Unhandled differnce in number of objects ----");
+                }
+
+            } else {
+                System.out.println("no relationships for "+fig1Objs[i]);
+                for(Map.Entry<String, ArrayList<String>> entry : fig1Map.entrySet()){
+                    for(String s : entry.getValue()){
+                        System.out.println(""+entry.getKey()+" ---- "+s+" ---- >");
+                    }
+                }
+            }
+        }
+
+        return score;
     }
 }
