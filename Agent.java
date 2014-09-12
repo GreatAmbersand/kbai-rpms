@@ -431,10 +431,10 @@ public class Agent {
             ArrayList<String> transformations = new ArrayList<String>();
             
             if(i >= bObjNames.length){
-                System.out.println("adding deleted");
+                System.out.println(aObjNames[i]+" deleted");
                 transformations.add("deleted");
             } else {
-                System.out.println("finding transformations");
+                System.out.println("finding transformations between "+aObjNames[i]+" and "+bObjNames[i]);
                 //find transformations
                 RavensObject objInA = figAObjects.get(String.valueOf(aObjNames[i]));
                 RavensObject objInB = figBObjects.get(String.valueOf(bObjNames[i]));
@@ -520,12 +520,29 @@ public class Agent {
                     } else {
                         //attribute in A not in B
                         System.out.println("Attribute "+key+" in object "+objInA.getName()+" in first graph but not in second object "+objInB.getName());
-                    }
-                    if(transformations.size() == 0){
-                        //this is what we want to see
-                        transformations.add("unchanged");
+                        transformations.add(""+key+":removed");
                     }
                 }
+                
+                for(Map.Entry<String, RavensAttribute> attribute : objBAttrs.entrySet()){
+                    String key = attribute.getKey();
+                    String value = attribute.getValue().getValue();
+                    if(intraGraphRelationships.contains(key)){
+                        if(objAAttrs.get(key) == null){
+                            transformations.add(key+":added");
+                            /*ArrayList<String> attributeValues = new ArrayList<String>(Arrays.toList(value.split(",")));
+                            String valForA = objAAttrs.get(key).getValue();
+                            if(valForA)*/
+                        }/* else {
+                            //add it as a new transformation
+                            
+                        }*/
+                    }
+                }
+            }
+            if(transformations.size() == 0){
+                //this is what we want to see
+                transformations.add("unchanged");
             }
             relationships.put(String.valueOf(aObjNames[i]), transformations);
         }
