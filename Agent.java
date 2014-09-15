@@ -1,8 +1,5 @@
 package project1;
 
-import org.jgrapht.*;
-import org.jgrapht.EdgeFactory;
-import org.jgrapht.graph.*;
 import java.util.*;
 import java.lang.*;
 
@@ -189,86 +186,6 @@ public class Agent {
                     }
                 }
 
-                //inverse the matrix from 2x1 to 1x2 to deal with horizontal axis easier
-                //use arrays when working with larger matrices for easy non-name compliant computing
-                //DirectedMultigraph[][] ruleMatrix = new DirectedMultigraph[1][2];
-                //DirectedMultigraph[][] relationshipMatrix = new DirectedMultigraph[1][2];
-                //Map<String, DirectedMultigraph> graphs = new HashMap<String, DirectedMultigraph>();
-
-                //ArrayList<DirectedMultigraph> answerGraphs = new ArrayList<DirectedMultigraph>();
-
-                //A is to B as C is to #            
-                /*for(RavensFigure fig : problem.getFigures().values()){
-
-                    String name = fig.getName();
-
-                    //create graph for figure
-                    //these don't include relationships so there shouldn't be multiple permutations
-                    DirectedMultigraph graphedFigure = createGraphForFigure(fig);
-                    graphs.put(name, graphedFigure);
-
-                    printGraph(name, graphedFigure);
-                    
-                    char[] chars = name.toCharArray();
-                    if(chars.length == 1 && Character.isLetter(chars[0])){
-                        int[] coordinates = twoBy1_mapping.get(name);
-                        if(name.equals("A") || name.equals("B")){ 
-                            //place in rule matrix
-                            ruleMatrix[coordinates[0]][coordinates[1]] = graphedFigure;
-                        } else if(name.equals("C")){
-                            //place in relationship matrix
-                            relationshipMatrix[coordinates[0]][coordinates[1]] = graphedFigure;
-                        }
-                    } else {
-                        //place graphedFigure in set of possible answers
-                        answerGraphs.add(graphedFigure);
-                    }
-                }*/
-
-                //get list of vectors and their names
-
-
-                //count the number of relationship permutations for the rule graphs
-                /*DirectedMultigraph graphA = graphs.get("A");
-                DirectedMultigraph graphB = graphs.get("B");
-
-                Set<RavensObject> vectorsOfA = null;
-                Set<RavensObject> vectorsOfB = null;
-
-                StringBuffer vectorsOfASB = new StringBuffer();
-                StirngBuffer vectorsOfBSB = new StringBuffer();
-
-                if(graphA != null){
-                    vectorsOfA = graphA.vertexSet();
-                    Iterator<RavensObject> vectorsOfAIterator = vectorsOfA.iterator();
-                    //build a string of object names to use for permutations
-                    while(vectorsOfAIterator.hasNext()){
-                        RavensObject vectorOfA = vectorsOfAIterator.next();
-                        vectorsOfASB.append(vectorOfA.getName());
-                    }
-                } else {
-                    System.out.println("**ERROR** Unable to retrieve graph A!");
-                }*/
-                
-                /*System.out.println("permutations of "+vectorsOfASB.toString());
-                for(int index = 0; index < permutations.size(); index++){
-                    System.out.println(permutations.get(index));
-                }*/
-
-                //deal with horizontal axis only
-                //relate adjacent graphs
-                /*int rowLength = ruleMatrix[0].length;
-                //each row
-                for(int i = 0; i<ruleMatrix.length; i++){
-                    //get all permutations for this graph
-
-                    for(int j=0; j<rowLength; j += 2){
-                        //ge nerate relationship with vertex mapping provided by next permutation
-                        generateRelationships(ruleMatrix[i][j], ruleMatrix[i][j+1]);
-                    }
-                }*/
-                //}
-
             } else if(problemType.equals("2x2")){
                 //deal with vertical and horizontal axes
 
@@ -291,72 +208,6 @@ public class Agent {
         return retVal;
     }
 
-    private DirectedMultigraph createGraphForFigure(RavensFigure figure){
-
-        ClassBasedEdgeFactory edgeFactory  = new ClassBasedEdgeFactory(Edge.class);
-
-        DirectedMultigraph<RavensObject, Edge> retval = new DirectedMultigraph<RavensObject, Edge>(edgeFactory);
-
-        for(RavensObject figObj : figure.getObjects()){
-            //add a new vector if the vector doesn't already exist
-            //Vertex v = new Vertex(figObj.getName());
-            retval.addVertex(figObj);
-        }
-
-        Set<RavensObject> verticies = retval.vertexSet();
-        Iterator<RavensObject> it = verticies.iterator();
-        while(it.hasNext()){
-            RavensObject object = it.next();
-
-            for(RavensAttribute attr : object.getAttributes()){
-                //add a relationship edge
-                if(intraGraphRelationships.contains(attr.getName())){
-                    System.out.println("mapping "+attr.getName()+" as intragraph relationship");
-                    System.out.println("looking for object[s] "+attr.getValue());
-                    
-                    String[] objects = attr.getValue().split(",");
-
-                    for(int i=0; i<objects.length; i++){
-
-                        Iterator<RavensObject> vit = verticies.iterator();
-                        RavensObject target = null;
-                        while(vit.hasNext()){
-                            target = vit.next();
-                            if(target.getName().equals(objects[i])){
-                                System.out.println("found object "+target.getName());
-                                break;
-                            }
-                        }
-
-                        if (target != null && target.getName().equals(objects[i])) {
-                            
-                            Edge edge = new Edge(attr.getName());
-
-                            if(retval.addEdge(object, target, edge)){
-                                System.out.println(object.getName()+"---->"+target.getName());
-                            } else {
-                                System.out.println("Edge "+object.getName()+"---->"+target.getName()+" already exists");
-                            }
-
-                        }
-
-                    }
-                }
-            }
-        }
-        return retval;
-    }
-
-    /**
-    *   Generate Transformation Relationships between two graphs
-    *   could return a set of edges between verticies in each graph
-    *   could return a new graph that combines the two using the new edges
-    *   could take a graph reference and modify it while returning if there are more edge generation permutations
-    *   
-    */
-    private void generateRelationships(DirectedMultigraph one, DirectedMultigraph two){
-
-    }
 
     private ArrayList<String> permute(String prefix, String left, ArrayList<String> placeHolder){
         if(left.length() == 0){
@@ -367,43 +218,6 @@ public class Agent {
             }
         }
         return placeHolder;
-    }
-
-    private void printGraph(String name, DirectedMultigraph<RavensObject, Edge> mg){
-        //print graph to make sure we made it properly
-        StringBuffer sb = new StringBuffer();
-        sb.append("\n"+name+"\n");
-        //Set<Edge> edges = mg.edgeSet();
-        /*Iterator<Edge> edgeIt = edges.iterator();
-        while(edgeIt.hasNext()){
-            Edge edge = edgeIt.next();
-            
-            RavensObject source  = mg.getEdgeSource(edge);
-            RavensObject target = mg.getEdgeTarget(edge);
-
-            //RavensObject from = edge
-            sb.append(""+source.getName()+"-----"+edge.getName()+"----->"+target.getName()+"\n");
-
-        }*/
-        Set<RavensObject> verticies = mg.vertexSet();
-        Iterator<RavensObject> vertIt = verticies.iterator();
-        while(vertIt.hasNext()){
-            RavensObject vertex = vertIt.next();
-            Set<Edge> edges = mg.edgesOf(vertex);
-            if(edges.size() > 0){
-                Iterator<Edge> edgeIt = edges.iterator();
-                while(edgeIt.hasNext()){
-                    Edge edge = edgeIt.next();
-
-                    RavensObject target = mg.getEdgeTarget(edge);
-                    //RavensObject from = edge
-                    sb.append(""+vertex.getName()+"-----"+edge.getName()+"----->"+target.getName()+"\n");
-                }
-            } else {
-                sb.append(""+vertex.getName()+"\n");
-            }
-        }
-        System.out.println(sb.toString());
     }
 
     private String getFigureObjectString(RavensFigure figure){
@@ -530,13 +344,7 @@ public class Agent {
                     if(intraGraphRelationships.contains(key)){
                         if(objAAttrs.get(key) == null){
                             transformations.add(key+":added");
-                            /*ArrayList<String> attributeValues = new ArrayList<String>(Arrays.toList(value.split(",")));
-                            String valForA = objAAttrs.get(key).getValue();
-                            if(valForA)*/
-                        }/* else {
-                            //add it as a new transformation
-                            
-                        }*/
+                        }
                     }
                 }
             }
@@ -575,30 +383,6 @@ public class Agent {
             retval = shapeSizeMapping.get(b) - shapeSizeMapping.get(a);
         } 
         return retval;
-        /*if(!val.equals(valForB)){
-            if((val.equals("small") && (valForB.equals("medium") || valForB.equals("large"))) || (val.equals("medium") && valForB.equals("large"))){
-                int newSize = shapeSizeMapping.get(valForB);
-                int originalSize = shapeSizeMapping.get(val);
-                int sizeChanged = null;
-                if(newSize != null && originalSize != null){
-                    sizeChanged = newSize - originalSize;
-                }
-                if(sizeChanged != null){
-                    transformations.add("grew:"+sizeChanged);
-                }
-            } else if((val.equals("large") && (valForB.equals("medium") || valForB.equals("small"))) || (val.equals("medium") && valForB.equals("small"))){
-                int newSize = shapeSizeMapping.get(valForB);
-                int originalSize = shapeSizeMapping.get(val);
-                int sizeChanged = null;
-                if(newSize != null && originalSize != null){
-                    sizeChanged = newSize - originalSize;
-                }
-                if(sizeChanged != null){
-                    transformations.add("grew:"+sizeChanged);
-                }
-                transformations.add("shrunk");
-            }
-        }*/
     }
 
     /**
