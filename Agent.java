@@ -83,11 +83,6 @@ public class Agent {
         threeBy3_mapping.put("H", new int[]{2, 1});
         threeBy3_mapping.put("#", new int[]{2, 2});
 
-        shapeSizeMapping = new HashMap<String, Integer>();
-        shapeSizeMapping.put("small", 1);
-        shapeSizeMapping.put("medium", 2);
-        shapeSizeMapping.put("large", 3);
-
         transformationWeights = new HashMap<String, Integer>();
         transformationWeights.put("unchanged", 5);
         //TODO: how often does reflected get used
@@ -97,7 +92,7 @@ public class Agent {
         transformationWeights.put("deleted", 1);
         transformationWeights.put("changedShape", 0);
 
-        intraGraphRelationships = new ArrayList<String>(Arrays.asList(new String[]{"inside", "above", "overlaps", "left-of"}));
+        
 
         //initialzie weights of types of edges here
     }
@@ -186,7 +181,12 @@ public class Agent {
                     }
                 }
 
+                for(int i=0; i<permuationsOfA.size(); i++){
+                    String aPermutation = permuationsOfA.get(i);
+                }
+
             } else if(problemType.equals("2x2")){
+                //use system of scorring correlation instead of permuations because they become very expensive 
                 //deal with vertical and horizontal axes
 
                 //String dimensions = problemType.split("x")
@@ -377,12 +377,33 @@ public class Agent {
         return ravensAttributeMap;
     }
 
-    private int calculateSizeChange(String a, String b){
-        int retval = UNKNOW_SIZE;
-        if(shapeSizeMapping.containsKey(a) && shapeSizeMapping.containsKey(b)){
-            retval = shapeSizeMapping.get(b) - shapeSizeMapping.get(a);
-        } 
-        return retval;
+    private List<Transformation> correlateRavensFigures(RavensFigure fig1, RavensFigure fig2){
+        //retval
+        List<Transformation> transformations = new ArrayList<Transformation>();
+        //to keep track of which objects have already been mapped between fig1 and fig2
+        List<RavensObject> alreadyCorrelated = new ArrayList<RavensObject>();
+
+        for(int i =0; i<fig1.getObjects().size(); i++){
+            RavensObject from = fig1.getObjects().get(i);
+            //return the most closely matched object (understand it as the objec to correlate to)
+            RavensObject to = findCorrelatedObject(from, fig2, alreadyCorrelated);
+            if(to != null){
+                alreadyCorrelated.add(to);
+            }
+            //calculate the transformations that need to take place
+        }
+
+        //added in second figure
+
+    }
+
+    /**
+    * Find the most closely correlated object (that hasn't already been mapped)
+    * in contained in fig2 by weighting
+    *
+    */
+    private RavensObject findCorrelatedObject(RavensObject obj, RavensFigure fig2, List<RavensObject>alreadyCorrelated){
+
     }
 
     /**
@@ -408,6 +429,11 @@ public class Agent {
         return score;
     }
 
+    private 
+    /**
+    * Generate the 
+    *
+    */
     private double scoreTransformations(String fig1, Map<String, ArrayList<String>> fig1Map, String fig2, Map<String, ArrayList<String>> fig2Map){
         double score = 0;
         char[] fig1Objs = fig1.toCharArray();
