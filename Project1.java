@@ -35,7 +35,7 @@ public class Project1 {
                                                                         // Additional sets of problems will be used when grading projects.
                                                                         // You may also write your own problems.
         
-        for(File file : new File("Problems").listFiles()) {             // One problem set per folder in /Problems/
+        for(File file : new File("TestProblems").listFiles()) {             // One problem set per folder in /Problems/
             ProblemSet newSet = new ProblemSet(file.getName());         // Each problem set is named after the folder in /Problems/
             sets.add(newSet);
             for(File problem : file.listFiles()) {                      // Each file in the problem set folder becomes a problem in that set.

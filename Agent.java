@@ -144,12 +144,19 @@ public class Agent {
 
                 double highScore = 0.0;
                 for(int i=0; i<candidateTransformations.size(); i++){
-                    double score = scoreTransformationSimilarity(ruleTransformations, candidateTransformations.get(i), i+"");
+                    System.out.println();
+                    System.out.println("------------");
+                    System.out.println("Scoring "+ruleTransformations+" against "+candidateTransformations.get(i));
+                    double score = scoreTransformationSimilarity(ruleTransformations, candidateTransformations.get(i), (i+1)+"");
+                    System.out.println("score : "+score);
                     if(score > highScore){
+                        System.out.println("score : "+score+" higher than current high score : "+highScore);
                         highScore = score;
-                        answer = i;
+                        answer = i+1;
+                        System.out.println("setting answer to "+answer);
                     }
                 }
+                System.out.println("returning : "+answer);
                 return answer+"";
                 /*RavensFigure figA = figs.get("A");
                 String figAObjectString = getFigureObjectString(figA);
@@ -229,8 +236,8 @@ public class Agent {
     * Extract the highest similarity score between two Lists of transformations
     */
     private double scoreTransformationSimilarity(List<Transformation> ruleTransformations, List<Transformation> candidate, String answerNubmer){
-
-        //initialize similarity to 0
+        
+        //overall similarity between two sets of transformations
         double similarity = 0;
 
         int positiveRuleTransformations = 0;
@@ -246,59 +253,116 @@ public class Agent {
                 positiveCandidateTransformations++;
             }
         }
-
+        System.out.println("# rule transformations : "+positiveRuleTransformations);
+        System.out.println("# candidate transformations : "+positiveCandidateTransformations);
         //same number of positive transformations give it a high correlation
         if(positiveRuleTransformations == positiveCandidateTransformations){
+            System.out.println("same number of positive transformations +2");
             similarity += 2;
         }
 
         for(int i=0; i< ruleTransformations.size(); i++){
+            //similarity between current rule transformation and each of the candidate transformations
+            double compareSimilarity = 0;
+            Transformation ab = ruleTransformations.get(i);
             //hold which transformations we've already calculated
-            //List<Transformation> mappedTransformation = new ArrayList<Transformation>();
+            List<Transformation> alreadyMappedTransformation = new ArrayList<Transformation>();
             //compares transformations in order they were created (not necessarily the highest scoring way)
+            Transformation map = null;
             for(int j=0; j< candidate.size(); j++){
-                System.out.println("((A to B) "+ruleTransformations.get(i)+") against ((C to "+answerNubmer+")) "+candidate.get(j));
-                Transformation ab = ruleTransformations.get(i);
+                
+                double currentSimilarity = 0.0;
+
                 Transformation c_ = candidate.get(j);
 
-                //shape
-                if(ab.changedShape == c_.changedShape){
-                    //either both changed shape or did not
-                    similarity += 2;    
+                if(alreadyMappedTransformation.contains(c_)){
+                    continue;
                 }
 
+                System.out.println("((A to B) "+ruleTransformations.get(i)+") against ((C to "+answerNubmer+")) "+candidate.get(j));
+
+                //added or delted
+                if(ab.added && c_.added){
+                    //shaped was added in both transformations
+                    System.out.println("added in both transformations +3");
+                    //similarity += 3;
+                    currentSimilarity += 3;
+                }
+                if(ab.deleted && c_.deleted){
+                    //shape was deleted from both
+                    System.out.println("deleted in both transformations +3");
+                    //similarity += 3;
+                    currentSimilarity += 3;
+                }
+
+                //shape
+                if(!ab.changedShape && !c_.changedShape){
+                    if(!ab.deleted && !c_.deleted){
+                        //either both changed shape or did not
+                        //similarity += 2;    
+                        currentSimilarity += 2;
+                        System.out.println("Both didn't change shape +2");
+                    }
+                }
+                /*if(ab.changedShape && c_.changedShape){
+                    //either both changed shape or did not
+                    similarity += 2;    
+                    System.out.println("Both changed shape");
+                }*/
+
                 //size
-                if((ab.shrunk && c_.shrunk) || (ab.expaned && c_.expaned) || ((!ab.shrunk && !c_.shrunk) || (!ab.expaned && !c_.expaned))) {
-                    similarity += 2;
+                //|| ((!ab.shrunk && !c_.shrunk) || (!ab.expaned && !c_.expaned)))
+                if((ab.shrunk && c_.shrunk) || (ab.expaned && c_.expaned))  {
+                    //similarity += 2;
+                    currentSimilarity += 2;
+                    System.out.println("Shrunk or expaned +2");
                     if(ab.sizeChange == c_.sizeChange){
-                        similarity++;
+                        System.out.println("same size change +1");
+                        currentSimilarity++;
                     }
                 }
 
                 //rotated
                 if(ab.rotated && c_.rotated){
-                    similarity++;
+                    //similarity++;
+                    currentSimilarity++;
+                    System.out.println("both rotated +1");
                     if(ab.degreesRotated == c_.degreesRotated && ab.degreesRotated != 0){
-                        similarity++;
+                        System.out.println("rotated same # of degress +1");
+                        //similarity++;
+                        currentSimilarity++;
                     }
                 }
 
                 //Fill matches
                 if(ab.fillChanged && c_.fillChanged){
-                    similarity++;
+                    System.out.println("both fills changed +1");
+                    //similarity++;
+                    currentSimilarity++;
                     //check which fills were changed
                     List<String> abFills = ab.fillTransformations;
                     List<String> c_Fills = c_.fillTransformations;
 
                     for(int k=0; k<c_Fills.size(); k++){
                         if(abFills.contains(c_Fills.get(k))){
-                            similarity++;
+                            //similarity++;
+                            System.out.println("contains same fill +1");
+                            currentSimilarity++;
                         } else {
-                            similarity--;
+                            System.out.println("removing similarity -1. Missing "+c_Fills.get(k));
+                            //similarity--;
+                            currentSimilarity--;
                         }
                     }
                 }
+                if(currentSimilarity > compareSimilarity){
+                    compareSimilarity = currentSimilarity;
+                    map = c_;
+                }
             }
+            System.out.println("similarity "+similarity+" + "+compareSimilarity);
+            similarity += compareSimilarity;
+            alreadyMappedTransformation.add(map);
         }
         return similarity;
     }
@@ -473,6 +537,8 @@ public class Agent {
     }
 
     private List<Transformation> correlateRavensFigures(RavensFigure fig1, RavensFigure fig2){
+        System.out.println("");
+        System.out.println("Correlating figure "+fig1.getName()+" to "+fig2.getName());
         //retval
         List<Transformation> transformations = new ArrayList<Transformation>();
         //to keep track of which objects have already been mapped between fig1 and fig2
@@ -481,13 +547,17 @@ public class Agent {
         for(int i=0; i<fig1.getObjects().size(); i++){
             RavensObject from = fig1.getObjects().get(i);
             //return the most closely matched object (understand it as the objec to correlate to)
+            System.out.println("Mapping "+from.getName());
             RavensObject to = findCorrelatedObject(from, fig2, alreadyCorrelated);
             if(to != null){
                 alreadyCorrelated.add(to);
             }
             //calculate the transformations that need to take place
-            transformations.add(new Transformation(from, to));
-            if(from != null){
+            System.out.println("Creating transfomation object");
+            Transformation currentTransformation = new Transformation(from, to);
+            transformations.add(currentTransformation);
+            System.out.println(currentTransformation);
+            /*if(from != null){
                 System.out.print(""+from.getName());
             } else {
                 System.out.print("null ");
@@ -498,7 +568,7 @@ public class Agent {
                 System.out.print(""+to.getName());
             } else {
                 System.out.print(" null ");
-            }
+            }*/
             //System.out.println(""+from.getName()+" --> "+to.getName());
         }
 
@@ -542,6 +612,7 @@ public class Agent {
                     //Shapes are the same
                     if (obj.getAttributes().get(j).getName().equals("shape") && toObject.getAttributes().get(k).getName().equals("shape") &&
                             obj.getAttributes().get(j).getValue().equals(toObject.getAttributes().get(k).getValue())) {    
+                        System.out.println(obj.getName()+" shape matched "+toObject.getName());
                         //static value for now
                         currentCorrelation += 3;
                         shape_match = true;
@@ -564,15 +635,15 @@ public class Agent {
                     }
                 }
             }
-            
-            if(bestCorrelationScore < currentCorrelation) {
+            //if not already mapped, map it
+            if(bestCorrelationScore <= currentCorrelation) {
                 bestCorrelationScore = currentCorrelation;
                 chosenToObject = toObject;
             }
-
-            if(chosenToObject != null) System.out.println("Correlated " + chosenToObject.getName() + ", value = " + currentCorrelation);
         //end object loop
         }
+
+        if(chosenToObject != null) System.out.println(obj.getName()+" correlated to " + chosenToObject.getName() + " : value = " + bestCorrelationScore);
 
         return chosenToObject;
     }

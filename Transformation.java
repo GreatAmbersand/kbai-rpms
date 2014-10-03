@@ -9,8 +9,8 @@ import java.util.*;
 public class Transformation {
 
 	//From Objec to Object
-	RavensObject from;
-	RavensObject to;
+	public RavensObject from;
+	public RavensObject to;
 
 	//list of different transformations
 	//physical transformations
