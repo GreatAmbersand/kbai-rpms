@@ -205,7 +205,7 @@ public class Transformation {
         					}
         				}
                         //one angle will do for vertical flip
-                        if(Integer.parseInt(fromAttributes.get(attribute).getValue()) == 0 && (toAttributes.get(attribute) == null || Integer.parseInt(toAttributes.get(attribute).getValue()) == 180)){
+                        if(Integer.parseInt(fromAttributes.get(attribute).getValue()) == 0 && (Integer.parseInt(toAttributes.get(attribute).getValue()) == 180)){
                             flippedVertically = true;
                         }
                         if(Integer.parseInt(fromAttributes.get(attribute).getValue()) == 180 && (toAttributes.get(attribute) == null || Integer.parseInt(toAttributes.get(attribute).getValue()) == 0)){
@@ -225,6 +225,21 @@ public class Transformation {
         				}
         			}
                     //work with shapes that don't change during a rotation : circle, square
+                    //both must have an angle. 
+                    if(fromAttributes.get(attribute) != null && toAttributes.get(attribute) != null){
+                        String fromShape = fromAttributes.get("shape").getValue();
+                        String toShape = toAttributes.get("shape").getValue();
+                        if((fromShape.equals("square") && toShape.equals("square")) || (fromShape.equals("cirlce") && toShape.equals("circle"))) {
+                            //could always be flipped to get the same image
+                            flippedVertically = true;
+                            flippedHorizontally = true;
+                        }
+                        if(fromShape.equals("triangle") && toShape.equals("triangle")){
+                            if(Integer.parseInt(fromAttributes.get(attribute).getValue()) == 0 && Integer.parseInt(toAttributes.get(attribute).getValue()) == 0){
+                                flippedHorizontally = true;
+                            }
+                        }
+                    }
         			break;
         	}
         }

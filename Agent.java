@@ -269,6 +269,7 @@ public class Agent {
             List<Transformation> alreadyMappedTransformation = new ArrayList<Transformation>();
             //compares transformations in order they were created (not necessarily the highest scoring way)
             Transformation map = null;
+            String mapLog = "";
             for(int j=0; j< candidate.size(); j++){
                 
                 double currentSimilarity = 0.0;
@@ -279,18 +280,22 @@ public class Agent {
                     continue;
                 }
 
-                System.out.println("((A to B) "+ruleTransformations.get(i)+") against ((C to "+answerNubmer+")) "+candidate.get(j));
+                StringBuffer similarityLog = new StringBuffer(); 
+
+                //System.out.println("((A to B) "+ruleTransformations.get(i)+") against ((C to "+answerNubmer+")) "+candidate.get(j));
 
                 //added or delted
                 if(ab.added && c_.added){
                     //shaped was added in both transformations
-                    System.out.println("added in both transformations +3");
+                    //System.out.println("added in both transformations +3");
+                    similarityLog.append("added in both transformations +3\n");
                     //similarity += 3;
                     currentSimilarity += 3;
                 }
                 if(ab.deleted && c_.deleted){
                     //shape was deleted from both
-                    System.out.println("deleted in both transformations +3");
+                    //System.out.println("deleted in both transformations +3");
+                    similarityLog.append("added in both transformations +3\n"); 
                     //similarity += 3;
                     currentSimilarity += 3;
                 }
@@ -301,34 +306,76 @@ public class Agent {
                         //either both changed shape or did not
                         //similarity += 2;    
                         currentSimilarity += 2;
-                        System.out.println("Both didn't change shape +2");
+                        //System.out.println("Both didn't change shape +2");
+                        similarityLog.append("Both didn't change shape +2\n");
+                        //check if that shapes are the same
+                        String abToShape = "";
+                        String c_ToShape = "";
+                        for(int k = 0; k<ab.to.getAttributes().size(); k++){
+                            if(ab.to.getAttributes().get(k).getName().equals("shape")){
+                                abToShape = ab.from.getAttributes().get(k).getValue();
+                                //System.out.println("set ab shape to "+abFromShape);
+                            }
+                        }
+                        for(int k = 0; k<c_.to.getAttributes().size(); k++){
+                            if(c_.to.getAttributes().get(k).getName().equals("shape")){
+                                c_ToShape = c_.to.getAttributes().get(k).getValue();
+                                //System.out.println("set c_ shape to "+c_FromShape);
+                            }
+                        }
+                        if(!abToShape.equals("") && !c_ToShape.equals("")){
+                            if(abToShape.equals(c_ToShape)){
+                                similarityLog.append("same shape between frames +2");
+                                currentSimilarity += 2;
+                            }
+                        }
                     }
                 }
-                /*if(ab.changedShape && c_.changedShape){
+                
+                if(ab.changedShape && c_.changedShape){
                     //either both changed shape or did not
                     similarity += 2;    
                     System.out.println("Both changed shape");
-                }*/
+                }
 
                 //size
                 //|| ((!ab.shrunk && !c_.shrunk) || (!ab.expaned && !c_.expaned)))
                 if((ab.shrunk && c_.shrunk) || (ab.expaned && c_.expaned))  {
                     //similarity += 2;
                     currentSimilarity += 2;
-                    System.out.println("Shrunk or expaned +2");
+                    similarityLog.append("Shrunk or expaned +2\n");
+                    //System.out.println("Shrunk or expaned +2");
                     if(ab.sizeChange == c_.sizeChange){
-                        System.out.println("same size change +1");
+                        similarityLog.append("same size change +1\n");
+                        //System.out.println("same size change +1");
                         currentSimilarity++;
                     }
                 }
 
+                //check for flips
+                boolean alreadyFlipped = false;
+                if(ab.flippedHorizontally && c_.flippedHorizontally){
+                    //System.out.println("flippedHorizontally +2");
+                    similarityLog.append("flippedHorizontally +2\n");
+                    currentSimilarity += 2;
+                    alreadyFlipped = true;
+                }
+
+                if((ab.flippedVertically && c_.flippedVertically)){
+                    //System.out.println("flippedVertically +2");
+                    similarityLog.append("flippedVertically +2\n");
+                    currentSimilarity += 2;   
+                    alreadyFlipped = true;
+                }
                 //rotated
-                if(ab.rotated && c_.rotated){
+                if((ab.rotated && c_.rotated) && !alreadyFlipped){
                     //similarity++;
                     currentSimilarity++;
-                    System.out.println("both rotated +1");
+                    //System.out.println("both rotated +1");
+                    similarityLog.append("both rotated +1\n");
                     if(ab.degreesRotated == c_.degreesRotated && ab.degreesRotated != 0){
-                        System.out.println("rotated same # of degress +1");
+                        //System.out.println("rotated same # of degress +1");
+                        similarityLog.append("rotated same # of degress +1\n");
                         //similarity++;
                         currentSimilarity++;
                     }
@@ -336,7 +383,8 @@ public class Agent {
 
                 //Fill matches
                 if(ab.fillChanged && c_.fillChanged){
-                    System.out.println("both fills changed +1");
+                    //System.out.println("both fills changed +1");
+                    similarityLog.append("both fills changed +1\n");
                     //similarity++;
                     currentSimilarity++;
                     //check which fills were changed
@@ -346,10 +394,12 @@ public class Agent {
                     for(int k=0; k<c_Fills.size(); k++){
                         if(abFills.contains(c_Fills.get(k))){
                             //similarity++;
-                            System.out.println("contains same fill +1");
+                            //System.out.println("contains same fill +1");
+                            similarityLog.append("contains same fill +1\n");
                             currentSimilarity++;
                         } else {
-                            System.out.println("removing similarity -1. Missing "+c_Fills.get(k));
+                            //System.out.println("removing similarity -1. Missing "+c_Fills.get(k));
+                            similarityLog.append("removing similarity -1. Missing "+c_Fills.get(k)+"\n");
                             //similarity--;
                             currentSimilarity--;
                         }
@@ -358,11 +408,23 @@ public class Agent {
                 if(currentSimilarity > compareSimilarity){
                     compareSimilarity = currentSimilarity;
                     map = c_;
+                    //System.out.println("setting transformation");
+                    mapLog = similarityLog.toString();
                 }
             }
+            
+            System.out.println("((A to B) "+ruleTransformations.get(i)+") against ((C to "+answerNubmer+")) "+map);
+            if(!mapLog.equals("")){
+                System.out.println(mapLog);
+            } else {
+                System.out.println("no mapping.");
+            }
             System.out.println("similarity "+similarity+" + "+compareSimilarity);
+
             similarity += compareSimilarity;
+
             alreadyMappedTransformation.add(map);
+
         }
         return similarity;
     }
