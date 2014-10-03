@@ -298,7 +298,7 @@ public class Agent {
                 if(ab.deleted && c_.deleted){
                     //shape was deleted from both
                     //System.out.println("deleted in both transformations +3");
-                    similarityLog.append("added in both transformations +3\n"); 
+                    similarityLog.append("deleted in both transformations +3\n"); 
                     //similarity += 3;
                     currentSimilarity += 3;
                 }
@@ -316,7 +316,7 @@ public class Agent {
                         String c_ToShape = "";
                         for(int k = 0; k<ab.to.getAttributes().size(); k++){
                             if(ab.to.getAttributes().get(k).getName().equals("shape")){
-                                abToShape = ab.from.getAttributes().get(k).getValue();
+                                abToShape = ab.to.getAttributes().get(k).getValue();
                                 //System.out.println("set ab shape to "+abFromShape);
                             }
                         }

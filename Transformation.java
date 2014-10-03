@@ -37,6 +37,7 @@ public class Transformation {
 	public boolean movedLeftOf = false;
 	public boolean movedRightOf = false;
 
+
     //boolean[] metrics = null; 
 
 	//the total score of this transformationc
@@ -85,11 +86,13 @@ public class Transformation {
 
         if(from == null){
             added = true;
+            unchanged = false;
             return false;
         }
 
         if(to == null){
             deleted = true;
+            unchanged = false;
             return false;
         }
 
