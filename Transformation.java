@@ -14,8 +14,9 @@ public class Transformation {
 
 	//list of different transformations
 	//physical transformations
-	public boolean unchanged = false;
+	public boolean unchanged = true;
 	public boolean changedShape = false;
+    public String shapeChangedTo = null;
 
 	//if an object was added or deleted
 	public boolean deleted = false;
@@ -35,6 +36,8 @@ public class Transformation {
 	public boolean movedOutside = false;
 	public boolean movedLeftOf = false;
 	public boolean movedRightOf = false;
+
+    //boolean[] metrics = null; 
 
 	//the total score of this transformationc
 	public double score = 0.0;
@@ -140,6 +143,8 @@ public class Transformation {
         		case "shape":
         			if(!fromAttributes.get(attribute).getValue().equals(toAttributes.get(attribute).getValue())){
         				changedShape = true;
+                        //log the shape it changed to as well (may need it for in depth processing)
+                        shapeChangedTo = toAttributes.get(attribute).getValue();
         			}
         			break;
         		case "fill":
@@ -242,6 +247,29 @@ public class Transformation {
                     }
         			break;
         	}
+        }
+
+        boolean[] metrics = new boolean[]{
+            changedShape,
+            deleted, 
+            added, 
+            shrunk, 
+            expaned, 
+            fillChanged, 
+            flippedVertically, 
+            flippedHorizontally,
+            rotated,
+            movedAbove,
+            movedBelow,
+            movedInside,
+            movedOutside,
+            movedLeftOf,
+            movedRightOf
+        };
+        for(int i=0; i<metrics.length; i++){
+            if(metrics[i]){
+                unchanged = false;
+            }
         }
         return true;
     }

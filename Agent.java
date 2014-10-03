@@ -283,7 +283,10 @@ public class Agent {
                 StringBuffer similarityLog = new StringBuffer(); 
 
                 //System.out.println("((A to B) "+ruleTransformations.get(i)+") against ((C to "+answerNubmer+")) "+candidate.get(j));
-
+                if(ab.unchanged && c_.unchanged){
+                    similarityLog.append("unchanged in both +3\n");
+                    currentSimilarity += 3;
+                }
                 //added or delted
                 if(ab.added && c_.added){
                     //shaped was added in both transformations
@@ -331,11 +334,16 @@ public class Agent {
                         }
                     }
                 }
-                
+
                 if(ab.changedShape && c_.changedShape){
                     //either both changed shape or did not
-                    similarity += 2;    
-                    System.out.println("Both changed shape");
+                    currentSimilarity += 2;    
+                    similarityLog.append("Both changed shape +2");
+                    //changed to the same shape?
+                    if(ab.shapeChangedTo.equals(c_.shapeChangedTo)){
+                        similarityLog.append("Both changed shape to "+ab.shapeChangedTo+" +2");
+                        currentSimilarity += 2;
+                    }
                 }
 
                 //size
@@ -667,10 +675,12 @@ public class Agent {
 
             double currentCorrelation = 0.0;
             boolean shape_match = false;
+
+            List<String> positionalAttributes = new ArrayList<String>(Arrays.asList(new String[]{"inside", "above", "overlaps", "left-of"}));
+
             for(int j=0; j < obj.getAttributes().size(); j++) {
                 for(int k=0; k < toObject.getAttributes().size(); k++) {
             
-                    /*** PRODUCTION RULES FOR CORRELATING OBJECTS ***/          
                     //Shapes are the same
                     if (obj.getAttributes().get(j).getName().equals("shape") && toObject.getAttributes().get(k).getName().equals("shape") &&
                             obj.getAttributes().get(j).getValue().equals(toObject.getAttributes().get(k).getValue())) {    
@@ -694,6 +704,12 @@ public class Agent {
                                         obj.getAttributes().get(j).getValue().equals(toObject.getAttributes().get(k).getValue())){
                             currentCorrelation += 1;  
                         }
+                    }
+
+                    //check if any of the positional attributes are the same
+                    if(obj.getAttributes().get(j).getName().equals(toObject.getAttributes().get(k).getName()) && positionalAttributes.contains(obj.getAttributes().get(j).getName())){
+                        System.out.println(""+obj.getAttributes().get(j).getName()+" in both objects");
+                        currentCorrelation += 1;
                     }
                 }
             }
