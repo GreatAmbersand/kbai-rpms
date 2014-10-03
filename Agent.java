@@ -134,7 +134,24 @@ public class Agent {
             String problemType = problem.getProblemType();
             if(problemType.equals("2x1")){
 
-                RavensFigure figA = figs.get("A");
+                int answer = 1;
+
+                List<Transformation> ruleTransformations = correlateRavensFigures(problem.getFigures().get("A"), problem.getFigures().get("B"));
+                List<List<Transformation>> candidateTransformations = new ArrayList<List<Transformation>>();
+                for(int i=1; i<= 6; i++){
+                    candidateTransformations.add(correlateRavensFigures(problem.getFigures().get("C"), problem.getFigures().get(""+i)));    
+                }
+
+                double highScore = 0.0;
+                for(int i=0; i<candidateTransformations.size(); i++){
+                    double score = scoreTransformationSimilarity(ruleTransformations, candidateTransformations.get(i), i+"");
+                    if(score > highScore){
+                        highScore = score;
+                        answer = i;
+                    }
+                }
+                return answer+"";
+                /*RavensFigure figA = figs.get("A");
                 String figAObjectString = getFigureObjectString(figA);
                 
                 RavensFigure figB = figs.get("B");
@@ -183,7 +200,7 @@ public class Agent {
 
                 for(int i=0; i<permuationsOfA.size(); i++){
                     String aPermutation = permuationsOfA.get(i);
-                }
+                }*/
 
             } else if(problemType.equals("2x2")){
                 //use system of scorring correlation instead of permuations because they become very expensive 
@@ -206,6 +223,84 @@ public class Agent {
         }
         System.out.println("returning "+retVal);
         return retVal;
+    }
+
+    /**
+    * Extract the highest similarity score between two Lists of transformations
+    */
+    private double scoreTransformationSimilarity(List<Transformation> ruleTransformations, List<Transformation> candidate, String answerNubmer){
+
+        //initialize similarity to 0
+        double similarity = 0;
+
+        int positiveRuleTransformations = 0;
+        for(int i=0; i<ruleTransformations.size(); i++){
+            if(ruleTransformations.get(i).score != 0){
+                positiveRuleTransformations++;
+            }
+        }
+        //count up the transformations that have scores
+        int positiveCandidateTransformations = 0;
+        for(int i=0; i<candidate.size(); i++){
+            if(candidate.get(i).score != 0){
+                positiveCandidateTransformations++;
+            }
+        }
+
+        //same number of positive transformations give it a high correlation
+        if(positiveRuleTransformations == positiveCandidateTransformations){
+            similarity += 2;
+        }
+
+        for(int i=0; i< ruleTransformations.size(); i++){
+            //hold which transformations we've already calculated
+            //List<Transformation> mappedTransformation = new ArrayList<Transformation>();
+            //compares transformations in order they were created (not necessarily the highest scoring way)
+            for(int j=0; j< candidate.size(); j++){
+                System.out.println("((A to B) "+ruleTransformations.get(i)+") against ((C to "+answerNubmer+")) "+candidate.get(j));
+                Transformation ab = ruleTransformations.get(i);
+                Transformation c_ = candidate.get(j);
+
+                //shape
+                if(ab.changedShape == c_.changedShape){
+                    //either both changed shape or did not
+                    similarity += 2;    
+                }
+
+                //size
+                if((ab.shrunk && c_.shrunk) || (ab.expaned && c_.expaned) || ((!ab.shrunk && !c_.shrunk) || (!ab.expaned && !c_.expaned))) {
+                    similarity += 2;
+                    if(ab.sizeChange == c_.sizeChange){
+                        similarity++;
+                    }
+                }
+
+                //rotated
+                if(ab.rotated && c_.rotated){
+                    similarity++;
+                    if(ab.degreesRotated == c_.degreesRotated && ab.degreesRotated != 0){
+                        similarity++;
+                    }
+                }
+
+                //Fill matches
+                if(ab.fillChanged && c_.fillChanged){
+                    similarity++;
+                    //check which fills were changed
+                    List<String> abFills = ab.fillTransformations;
+                    List<String> c_Fills = c_.fillTransformations;
+
+                    for(int k=0; k<c_Fills.size(); k++){
+                        if(abFills.contains(c_Fills.get(k))){
+                            similarity++;
+                        } else {
+                            similarity--;
+                        }
+                    }
+                }
+            }
+        }
+        return similarity;
     }
 
 
@@ -297,10 +392,10 @@ public class Agent {
                                 if(valForB != null){
                                     val = val.trim().toLowerCase();
                                     valForB = valForB.trim().toLowerCase();
-                                    int sizeChange = calculateSizeChange(val, valForB);
+                                    /*int sizeChange = calculateSizeChange(val, valForB);
                                     if(sizeChange != 0 && sizeChange != UNKNOW_SIZE){
                                         transformations.add("scaled:"+sizeChange);
-                                    } 
+                                    } */
                                 }
                                 break;
                             case "inside":
@@ -383,7 +478,7 @@ public class Agent {
         //to keep track of which objects have already been mapped between fig1 and fig2
         List<RavensObject> alreadyCorrelated = new ArrayList<RavensObject>();
 
-        for(int i =0; i<fig1.getObjects().size(); i++){
+        for(int i=0; i<fig1.getObjects().size(); i++){
             RavensObject from = fig1.getObjects().get(i);
             //return the most closely matched object (understand it as the objec to correlate to)
             RavensObject to = findCorrelatedObject(from, fig2, alreadyCorrelated);
@@ -391,10 +486,32 @@ public class Agent {
                 alreadyCorrelated.add(to);
             }
             //calculate the transformations that need to take place
+            transformations.add(new Transformation(from, to));
+            if(from != null){
+                System.out.print(""+from.getName());
+            } else {
+                System.out.print("null ");
+            }
+
+            System.out.print(" ---> ");
+            if(to != null){
+                System.out.print(""+to.getName());
+            } else {
+                System.out.print(" null ");
+            }
+            //System.out.println(""+from.getName()+" --> "+to.getName());
         }
 
         //added in second figure
-
+        for(int i=0; i<fig2.getObjects().size(); i++){
+            RavensObject objectInTwo = fig2.getObjects().get(i);
+            if(!alreadyCorrelated.contains(objectInTwo)){
+                transformations.add(new Transformation(null, objectInTwo));
+                System.out.println("Object added "+objectInTwo.getName()+" in second figure ");
+            }
+        }
+        System.out.println("Returning "+transformations.size()+" transformations.");
+        return transformations;
     }
 
     /**
@@ -403,7 +520,61 @@ public class Agent {
     *
     */
     private RavensObject findCorrelatedObject(RavensObject obj, RavensFigure fig2, List<RavensObject>alreadyCorrelated){
+        
+        RavensObject chosenToObject = null;
+        double bestCorrelationScore = 0.0;
 
+        for(int i=0; i< fig2.getObjects().size(); i++){
+
+            RavensObject toObject = fig2.getObjects().get(i);
+
+            //move to next object if we've already mapped this one
+            if(alreadyCorrelated.contains(toObject)){
+                continue;
+            }
+
+            double currentCorrelation = 0.0;
+            boolean shape_match = false;
+            for(int j=0; j < obj.getAttributes().size(); j++) {
+                for(int k=0; k < toObject.getAttributes().size(); k++) {
+            
+                    /*** PRODUCTION RULES FOR CORRELATING OBJECTS ***/          
+                    //Shapes are the same
+                    if (obj.getAttributes().get(j).getName().equals("shape") && toObject.getAttributes().get(k).getName().equals("shape") &&
+                            obj.getAttributes().get(j).getValue().equals(toObject.getAttributes().get(k).getValue())) {    
+                        //static value for now
+                        currentCorrelation += 3;
+                        shape_match = true;
+                    }
+                    
+                    //Check other attributes if shape matches
+                    if(shape_match) {
+                        
+                        //Sizes are the same
+                        if (obj.getAttributes().get(j).getName().equals("size") && toObject.getAttributes().get(k).getName().equals("size") &&
+                                        obj.getAttributes().get(j).getValue().equals(toObject.getAttributes().get(k).getValue())){
+                            currentCorrelation += 2;  
+                        } 
+                        
+                        //Fills are the same
+                        if (obj.getAttributes().get(j).getName().equals("fill") && toObject.getAttributes().get(k).getName().equals("fill") &&
+                                        obj.getAttributes().get(j).getValue().equals(toObject.getAttributes().get(k).getValue())){
+                            currentCorrelation += 1;  
+                        }
+                    }
+                }
+            }
+            
+            if(bestCorrelationScore < currentCorrelation) {
+                bestCorrelationScore = currentCorrelation;
+                chosenToObject = toObject;
+            }
+
+            if(chosenToObject != null) System.out.println("Correlated " + chosenToObject.getName() + ", value = " + currentCorrelation);
+        //end object loop
+        }
+
+        return chosenToObject;
     }
 
     /**
@@ -429,7 +600,7 @@ public class Agent {
         return score;
     }
 
-    private 
+    //private 
     /**
     * Generate the 
     *
