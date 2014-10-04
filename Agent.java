@@ -328,12 +328,13 @@ public class Agent {
             similarity += 2;
         }
 
+        //hold which transformations we've already calculated
+        List<Transformation> alreadyMappedTransformation = new ArrayList<Transformation>();
+
         for(int i=0; i< ruleTransformations.size(); i++){
             //similarity between current rule transformation and each of the candidate transformations
             double compareSimilarity = 0;
             Transformation ab = ruleTransformations.get(i);
-            //hold which transformations we've already calculated
-            List<Transformation> alreadyMappedTransformation = new ArrayList<Transformation>();
             //compares transformations in order they were created (not necessarily the highest scoring way)
             Transformation map = null;
             String mapLog = "";
@@ -500,6 +501,20 @@ public class Agent {
 
             alreadyMappedTransformation.add(map);
 
+        }
+
+        if(alreadyMappedTransformation.size() < candidate.size()){
+            //there are more transformations
+            for(int i=0; i<candidate.size(); i++){
+                Transformation t = candidate.get(i);
+                if(!alreadyMappedTransformation.contains(t)){
+                    //transformation that hasn't been mapped
+                    if(t.unchanged){
+                        similarity += 1;
+                        System.out.println("Extra unmatched transformation with no change +1");
+                    }
+                }
+            }
         }
         return similarity;
     }

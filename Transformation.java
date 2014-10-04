@@ -237,11 +237,11 @@ public class Transformation {
                     if(fromAttributes.get(attribute) != null && toAttributes.get(attribute) != null){
                         String fromShape = fromAttributes.get("shape").getValue();
                         String toShape = toAttributes.get("shape").getValue();
-                        if((fromShape.equals("square") && toShape.equals("square")) || (fromShape.equals("cirlce") && toShape.equals("circle"))) {
+                        /*if((fromShape.equals("square") && toShape.equals("square")) || (fromShape.equals("cirlce") && toShape.equals("circle"))) {
                             //could always be flipped to get the same image
                             flippedVertically = true;
                             flippedHorizontally = true;
-                        }
+                        }*/
                         if(fromShape.contains("triangle") && toShape.contains("triangle")){
                             System.out.println("found "+fromShape);
                             if(Integer.parseInt(fromAttributes.get(attribute).getValue()) == 0 && Integer.parseInt(toAttributes.get(attribute).getValue()) == 0){
