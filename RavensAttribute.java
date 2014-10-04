@@ -5,7 +5,7 @@
  * If you have any questions, please email the TAs.
  * 
  */
-package project1;
+package project2;
 
 /**
  * A single variable-value pair that describes some element of a RavensObject.

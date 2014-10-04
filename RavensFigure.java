@@ -5,9 +5,10 @@
  * If you have any questions, please email the TAs.
  * 
  */
-package project1;
+package project2;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 
 /**
  * A single figure in a Raven's Progressive Matrix problem, comprised of a name 
@@ -17,6 +18,7 @@ import java.util.ArrayList;
 public class RavensFigure {
     private String name;
     private ArrayList<RavensObject> objects;
+    private HashMap<String, RavensObject> objectsMap;
     
     /**
      * Creates a new figure for a Raven's Progressive Matrix given a name.
