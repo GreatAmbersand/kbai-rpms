@@ -5,7 +5,7 @@
  * If you have any questions, please email the TAs.
  * 
  */
-package project1;
+package project2;
 
 import java.util.ArrayList;
 
