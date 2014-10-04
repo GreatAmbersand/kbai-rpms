@@ -38,7 +38,7 @@ public class Transformation {
 	public boolean movedRightOf = false;
 
 
-    //boolean[] metrics = null; 
+    public boolean[] metrics = null; 
 
 	//the total score of this transformationc
 	public double score = 0.0;
@@ -267,7 +267,7 @@ public class Transformation {
         	}
         }
 
-        boolean[] metrics = new boolean[]{
+        metrics = new boolean[]{
             changedShape,
             deleted, 
             added, 
@@ -383,6 +383,22 @@ public class Transformation {
             retval += to.getName();
         } else {
             retval +=" null ";
+        }
+        return retval;
+    }
+
+    //don't want to override equals here. We use it for other things
+    public boolean sameAs(Transformation test){
+        boolean retval = true;
+        if(this.metrics != null && test.metrics != null){
+            for(int i=0; i<metrics.length; i++){
+                if(this.metrics[i] != test.metrics[i]){
+                    retval = false;
+                }
+            }
+        } else {
+            System.out.println("metrics boolean[] is null");
+            retval = false;
         }
         return retval;
     }

@@ -274,8 +274,61 @@ public class Agent {
                 } else {
                     System.out.println("vertical and horizontal answers disagreed");
                     //deal with a dispute (maybe try to aggregate rule transformations??)
-                    //default to horizontal answer for now
-                    return ""+horizontalAnswer;
+                    
+                    //pull out the rules that match
+                    /*List<Transformation> aggregatedRules = aggregateTransformations(horizontalRuleTransformations, verticalRuleTransformations);
+                    
+                    //try comparing aggregated rules to each one of the candidate tranformations. High score wins
+                    int aggAnswer = 1;
+                    double aggHighScore = 0.0;
+                    
+                    for(int i=0; i< verticalCandidateTransformations.size(); i++){
+                        System.out.println();
+                        System.out.println("------------");
+                        System.out.println("Scoring "+verticalRuleTransformations+" against "+verticalCandidateTransformations.get(i));
+                        double score = scoreTransformationSimilarity(verticalRuleTransformations, verticalCandidateTransformations.get(i), (i+1)+"");
+                        System.out.println("score : "+score);
+                        if(score > aggHighScore){
+                            System.out.println("score : "+score+" higher than current high score : "+verticalHighScore);
+                            aggHighScore = score;
+                            aggAnswer = i+1;
+                            System.out.println("setting verticalAnswer answer to "+verticalAnswer);
+                        }
+                    }
+
+                    for(int i=0; i<horizontalCandidateTransformations.size(); i++){
+                        System.out.println();
+                        System.out.println("------------");
+                        System.out.println("Scoring "+horizontalRuleTransformations+" against "+horizontalCandidateTransformations.get(i));
+                        double score = scoreTransformationSimilarity(horizontalRuleTransformations, horizontalCandidateTransformations.get(i), (i+1)+"");
+                        System.out.println("score : "+score);
+                        if(score > aggHighScore){
+                            System.out.println("score : "+score+" higher than current high score : "+horizontalHighScore);
+                            aggHighScore = score;
+                            aggAnswer = i+1;
+                            System.out.println("setting horizontal answer to "+horizontalAnswer);
+                        }
+                    }
+
+                    double overallHighScore = Math.max(aggHighScore, Math.max(horizontalHighScore, verticalHighScore));
+                    if(aggHighScore == overallHighScore){
+                        return aggAnswer+"";
+                    } else if(horizontalHighScore == overallHighScore){
+                        return horizontalHighScore+"";
+                    } else {
+                        return verticalHighScore+"";
+                    }*/
+                    //if(aggHighScore > horizontalHighScore && aggHighScore > verticalHighScore)
+                    if(horizontalHighScore > verticalHighScore){
+                        System.out.println("Using horizontal score "+horizontalHighScore+" instead of vertical "+verticalHighScore);
+                        return ""+horizontalAnswer;
+                    } else if(verticalHighScore > horizontalHighScore){
+                        System.out.println("Using vertical score "+verticalHighScore+" instead of horizontal "+horizontalHighScore);
+                        return ""+verticalAnswer;
+                    } else {
+                        //default to horizontal answer for now
+                        return ""+horizontalAnswer;
+                    }
                 }
 
                 //deal with vertical and horizontal axes
@@ -328,6 +381,7 @@ public class Agent {
             similarity += 2;
         }
 
+        List<Transformation> missedMappedRuleTransformation = new ArrayList<Transformation>();
         //hold which transformations we've already calculated
         List<Transformation> alreadyMappedTransformation = new ArrayList<Transformation>();
 
@@ -369,6 +423,15 @@ public class Agent {
                     similarityLog.append("deleted in both transformations +3\n"); 
                     //similarity += 3;
                     currentSimilarity += 3;
+                    //add points if the same shape was deleted
+                    Map<String, RavensAttribute> abAttMap = attributeToMap(ab.from.getAttributes());
+                    Map<String, RavensAttribute> c_AttMap = attributeToMap(c_.from.getAttributes());
+                    if(abAttMap.get("shape") != null && c_AttMap.get("shape") != null) {
+                        if(abAttMap.get("shape").getValue().equals(c_AttMap.get("shape").getValue())){
+                            similarityLog.append("deleted same shape in both transformations +3\n"); 
+                            currentSimilarity += 3;
+                        }
+                    }
                 }
 
                 //shape
@@ -498,9 +561,17 @@ public class Agent {
             System.out.println("similarity "+similarity+" + "+compareSimilarity);
 
             similarity += compareSimilarity;
+            if(map != null){
+                alreadyMappedTransformation.add(map);
+            } else {
+                missedMappedRuleTransformation.add(ab);
+            }
 
-            alreadyMappedTransformation.add(map);
+        }
 
+        for(int i = 0; i<missedMappedRuleTransformation.size(); i++){
+                System.out.println("Unmapped rule transformation "+missedMappedRuleTransformation.get(i)+". -3");
+                similarity -=3;
         }
 
         if(alreadyMappedTransformation.size() < candidate.size()){
@@ -519,6 +590,21 @@ public class Agent {
         return similarity;
     }
 
+    private List<Transformation> aggregateTransformations(List<Transformation> set1, List<Transformation> set2){
+        List<Transformation> rules = new ArrayList<Transformation>();
+        //find exact rule matches
+        for(int i=0; i<set1.size(); i++){
+            for(int j=0; j<set2.size(); j++){
+                if(set1.get(i).sameAs(set2.get(j))){
+                    if(!rules.contains(set1.get(i))){
+                        rules.add(set1.get(i));
+                    }
+                }
+            }
+        }
+
+        return rules;
+    }
 
     private ArrayList<String> permute(String prefix, String left, ArrayList<String> placeHolder){
         if(left.length() == 0){
