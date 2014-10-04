@@ -36,6 +36,12 @@ public class Agent {
     private HashMap<String, Integer> shapeSizeMapping;
     private HashMap<String, Integer> transformationWeights;
 
+    //metrics for 2x2
+    //the number of problems where the horizontal and vertical axis were in aggreement with one another
+    //int numMatching = 0;
+    //the number of problems where the horizontal and vertical axis disagreed with each other
+    //int numInDispute = 0
+
     private final int UNKNOW_SIZE = -1000;
 
     private ArrayList<String> intraGraphRelationships;
@@ -126,6 +132,7 @@ public class Agent {
         //default answer to 1
         //this should only stay unchanged if we don't recognize the problemType
         String retVal = "1";
+
         try {
             //get the problem figures here so as to not call problem.getFigures() over and over
             HashMap<String, RavensFigure> figs = problem.getFigures();
@@ -211,6 +218,66 @@ public class Agent {
 
             } else if(problemType.equals("2x2")){
                 //use system of scorring correlation instead of permuations because they become very expensive 
+                //work with the horizontal axis first
+                System.out.println("Working with horizontal axis");
+                List<Transformation> horizontalRuleTransformations = correlateRavensFigures(problem.getFigures().get("A"), problem.getFigures().get("B"));
+                
+                List<List<Transformation>> horizontalCandidateTransformations = new ArrayList<List<Transformation>>();
+                for(int i=1; i<= 6; i++){
+                    horizontalCandidateTransformations.add(correlateRavensFigures(problem.getFigures().get("C"), problem.getFigures().get(""+i)));
+                }
+
+                int horizontalAnswer = 1;
+                double horizontalHighScore = 0.0;
+                for(int i=0; i<horizontalCandidateTransformations.size(); i++){
+                    System.out.println();
+                    System.out.println("------------");
+                    System.out.println("Scoring "+horizontalRuleTransformations+" against "+horizontalCandidateTransformations.get(i));
+                    double score = scoreTransformationSimilarity(horizontalRuleTransformations, horizontalCandidateTransformations.get(i), (i+1)+"");
+                    System.out.println("score : "+score);
+                    if(score > horizontalHighScore){
+                        System.out.println("score : "+score+" higher than current high score : "+horizontalHighScore);
+                        horizontalHighScore = score;
+                        horizontalAnswer = i+1;
+                        System.out.println("setting horizontal answer to "+horizontalAnswer);
+                    }
+                }
+
+                //work with vertical axis next
+                System.out.println("working with vertical axis");
+                List<Transformation> verticalRuleTransformations =  correlateRavensFigures(problem.getFigures().get("A"), problem.getFigures().get("C"));
+                List<List<Transformation>> verticalCandidateTransformations = new ArrayList<List<Transformation>>();
+                for(int i=1; i<= 6; i++){
+                    verticalCandidateTransformations.add(correlateRavensFigures(problem.getFigures().get("B"), problem.getFigures().get(""+i)));    
+                }
+
+                int verticalAnswer = 1;
+                double verticalHighScore = 0.0;
+                for(int i=0; i< verticalCandidateTransformations.size(); i++){
+                    System.out.println();
+                    System.out.println("------------");
+                    System.out.println("Scoring "+verticalRuleTransformations+" against "+verticalCandidateTransformations.get(i));
+                    double score = scoreTransformationSimilarity(verticalRuleTransformations, verticalCandidateTransformations.get(i), (i+1)+"");
+                    System.out.println("score : "+score);
+                    if(score > verticalHighScore){
+                        System.out.println("score : "+score+" higher than current high score : "+verticalHighScore);
+                        verticalHighScore = score;
+                        verticalAnswer = i+1;
+                        System.out.println("setting verticalAnswer answer to "+verticalAnswer);
+                    }
+                }
+
+                System.out.println("horizontal answer = "+horizontalAnswer +" verticalAnswer "+verticalAnswer);
+                if(horizontalAnswer == verticalAnswer){
+                    System.out.println("vertical and horizontal matched answers matched");
+                    return ""+horizontalAnswer;
+                } else {
+                    System.out.println("vertical and horizontal answers disagreed");
+                    //deal with a dispute (maybe try to aggregate rule transformations??)
+                    //default to horizontal answer for now
+                    return ""+horizontalAnswer;
+                }
+
                 //deal with vertical and horizontal axes
 
                 //String dimensions = problemType.split("x")
@@ -328,7 +395,7 @@ public class Agent {
                         }
                         if(!abToShape.equals("") && !c_ToShape.equals("")){
                             if(abToShape.equals(c_ToShape)){
-                                similarityLog.append("same shape between frames +2");
+                                similarityLog.append("same shape between frames +2\n");
                                 currentSimilarity += 2;
                             }
                         }
@@ -338,10 +405,10 @@ public class Agent {
                 if(ab.changedShape && c_.changedShape){
                     //either both changed shape or did not
                     currentSimilarity += 2;    
-                    similarityLog.append("Both changed shape +2");
+                    similarityLog.append("Both changed shape +2\n");
                     //changed to the same shape?
                     if(ab.shapeChangedTo.equals(c_.shapeChangedTo)){
-                        similarityLog.append("Both changed shape to "+ab.shapeChangedTo+" +2");
+                        similarityLog.append("Both changed shape to "+ab.shapeChangedTo+" +2\n");
                         currentSimilarity += 2;
                     }
                 }
@@ -364,15 +431,15 @@ public class Agent {
                 boolean alreadyFlipped = false;
                 if(ab.flippedHorizontally && c_.flippedHorizontally){
                     //System.out.println("flippedHorizontally +2");
-                    similarityLog.append("flippedHorizontally +2\n");
-                    currentSimilarity += 2;
+                    similarityLog.append("flippedHorizontally +3\n");
+                    currentSimilarity += 3;
                     alreadyFlipped = true;
                 }
 
                 if((ab.flippedVertically && c_.flippedVertically)){
                     //System.out.println("flippedVertically +2");
-                    similarityLog.append("flippedVertically +2\n");
-                    currentSimilarity += 2;   
+                    similarityLog.append("flippedVertically +3\n");
+                    currentSimilarity += 3;   
                     alreadyFlipped = true;
                 }
                 //rotated

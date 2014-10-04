@@ -199,12 +199,12 @@ public class Transformation {
         						degreesRotated = Math.abs(Integer.parseInt(toAttributes.get(attribute).getValue()) - Integer.parseInt(fromAttributes.get(attribute).getValue()));
         					}
                             //need angle for both object to determin horizontal flip
-                            if(Integer.parseInt(fromAttributes.get(attribute).getValue()) == 90 && Integer.parseInt(toAttributes.get(attribute).getValue()) == 270){
+                            /*if(Integer.parseInt(fromAttributes.get(attribute).getValue()) == 90 && Integer.parseInt(toAttributes.get(attribute).getValue()) == 270){
                                 flippedHorizontally = true;
                             }
                             if(Integer.parseInt(fromAttributes.get(attribute).getValue()) == 270 && Integer.parseInt(toAttributes.get(attribute).getValue()) == 90){
                                 flippedHorizontally = true;
-                            }
+                            }*/
         				} else {
         					//angle existed and now it doesn't
         					if(Integer.parseInt(fromAttributes.get(attribute).getValue()) != 0){
@@ -242,8 +242,23 @@ public class Transformation {
                             flippedVertically = true;
                             flippedHorizontally = true;
                         }
-                        if(fromShape.equals("triangle") && toShape.equals("triangle")){
+                        if(fromShape.contains("triangle") && toShape.contains("triangle")){
+                            System.out.println("found "+fromShape);
                             if(Integer.parseInt(fromAttributes.get(attribute).getValue()) == 0 && Integer.parseInt(toAttributes.get(attribute).getValue()) == 0){
+                                flippedHorizontally = true;
+                            }
+                            if((Integer.parseInt(fromAttributes.get(attribute).getValue()) == 90 && Integer.parseInt(toAttributes.get(attribute).getValue()) == 180)
+                                || (Integer.parseInt(fromAttributes.get(attribute).getValue()) == 180 && Integer.parseInt(toAttributes.get(attribute).getValue()) == 90)
+                                || (Integer.parseInt(fromAttributes.get(attribute).getValue()) == 270 && Integer.parseInt(toAttributes.get(attribute).getValue()) == 0)
+                                || (Integer.parseInt(fromAttributes.get(attribute).getValue()) == 0 && Integer.parseInt(toAttributes.get(attribute).getValue()) == 270)) {
+                                    System.out.println("Flipping vertically");
+                                    flippedVertically = true;
+                                }
+                            if((Integer.parseInt(fromAttributes.get(attribute).getValue()) == 90 && Integer.parseInt(toAttributes.get(attribute).getValue()) == 0) 
+                                || (Integer.parseInt(fromAttributes.get(attribute).getValue()) == 0 && Integer.parseInt(toAttributes.get(attribute).getValue()) == 90)
+                                || (Integer.parseInt(fromAttributes.get(attribute).getValue()) == 180 && Integer.parseInt(toAttributes.get(attribute).getValue()) == 270)
+                                || (Integer.parseInt(fromAttributes.get(attribute).getValue()) == 270 && Integer.parseInt(toAttributes.get(attribute).getValue()) == 180)){
+                                System.out.println("Flipping horizontally");
                                 flippedHorizontally = true;
                             }
                         }
