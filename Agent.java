@@ -340,14 +340,14 @@ public class Agent {
                 //work with the horizontal axis first
                 
                 System.out.println("Working with horizontal axis");
-                List<Transformation> abCorrelations = correlateRavensFigures(problem.getFigures().get("A"), problem.getFigures().get("B"));
-                List<Transformation> bcCorrelations = correlateRavensFigures(problem.getFigures().get("B"), problem.getFigures().get("C"));
+                //List<Transformation> abCorrelations = correlateRavensFigures(problem.getFigures().get("A"), problem.getFigures().get("B"));
+                //List<Transformation> bcCorrelations = correlateRavensFigures(problem.getFigures().get("B"), problem.getFigures().get("C"));
                 
                 //what changed from A to B. How was the reflected in B to C ?
                 //find similar transformations from a -> b as b -> c
 
-                List<Transformation> deCorrelations = correlateRavensFigures(problem.getFigures().get("D"), problem.getFigures().get("E"));
-                List<Transformation> efCorrelations = correlateRavensFigures(problem.getFigures().get("E"), problem.getFigures().get("F"));
+                //List<Transformation> deCorrelations = correlateRavensFigures(problem.getFigures().get("D"), problem.getFigures().get("E"));
+                //List<Transformation> efCorrelations = correlateRavensFigures(problem.getFigures().get("E"), problem.getFigures().get("F"));
                 //what changed from A to B. How was the reflected in B to C ?
                 //find similar transformations from d -> e as e -> f
 
@@ -377,11 +377,11 @@ public class Agent {
                 }
 
                 System.out.println("Working with vertical axis");
-                List<Transformation> adCorrelations = correlateRavensFigures(problem.getFigures().get("A"), problem.getFigures().get("D"));
-                List<Transformation> dgCorrelations = correlateRavensFigures(problem.getFigures().get("D"), problem.getFigures().get("G"));
+                //List<Transformation> adCorrelations = correlateRavensFigures(problem.getFigures().get("A"), problem.getFigures().get("D"));
+                //List<Transformation> dgCorrelations = correlateRavensFigures(problem.getFigures().get("D"), problem.getFigures().get("G"));
 
-                List<Transformation> beCorrelations = correlateRavensFigures(problem.getFigures().get("B"), problem.getFigures().get("E"));
-                List<Transformation> ehCorrelations = correlateRavensFigures(problem.getFigures().get("E"), problem.getFigures().get("H"));
+                //List<Transformation> beCorrelations = correlateRavensFigures(problem.getFigures().get("B"), problem.getFigures().get("E"));
+                //List<Transformation> ehCorrelations = correlateRavensFigures(problem.getFigures().get("E"), problem.getFigures().get("H"));
 
                 List<Transformation> cfCorrelations = correlateRavensFigures(problem.getFigures().get("C"), problem.getFigures().get("F"));
 
@@ -408,12 +408,12 @@ public class Agent {
 
                 System.out.println("Working with diagonal axis");
                 // d -> h -> c
-                List<Transformation> dhCorrelations = correlateRavensFigures(problem.getFigures().get("D"), problem.getFigures().get("H"));
-                List<Transformation> hcCorrelations = correlateRavensFigures(problem.getFigures().get("H"), problem.getFigures().get("C"));
+                //List<Transformation> dhCorrelations = correlateRavensFigures(problem.getFigures().get("D"), problem.getFigures().get("H"));
+                //List<Transformation> hcCorrelations = correlateRavensFigures(problem.getFigures().get("H"), problem.getFigures().get("C"));
 
                 //g - b -> f
-                List<Transformation> gbCorrelations = correlateRavensFigures(problem.getFigures().get("G"), problem.getFigures().get("B"));
-                List<Transformation> bfCorrelations = correlateRavensFigures(problem.getFigures().get("B"), problem.getFigures().get("F"));
+                //List<Transformation> gbCorrelations = correlateRavensFigures(problem.getFigures().get("G"), problem.getFigures().get("B"));
+                //List<Transformation> bfCorrelations = correlateRavensFigures(problem.getFigures().get("B"), problem.getFigures().get("F"));
 
                 //a -> e -> i 
                 List<Transformation> aeCorrelations = correlateRavensFigures(problem.getFigures().get("A"), problem.getFigures().get("E"));
