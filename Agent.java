@@ -340,14 +340,26 @@ public class Agent {
                 //work with the horizontal axis first
                 
                 System.out.println("Working with horizontal axis");
-                //List<Transformation> abCorrelations = correlateRavensFigures(problem.getFigures().get("A"), problem.getFigures().get("B"));
-                //List<Transformation> bcCorrelations = correlateRavensFigures(problem.getFigures().get("B"), problem.getFigures().get("C"));
+                List<Transformation> abCorrelations = correlateRavensFigures(problem.getFigures().get("A"), problem.getFigures().get("B"));
+                List<Transformation> bcCorrelations = correlateRavensFigures(problem.getFigures().get("B"), problem.getFigures().get("C"));
+                List<Pattern> abbcPatterns = Pattern.findPatterns(abCorrelations, bcCorrelations);
+                //debug
+                if(abbcPatterns.size() > 0){
+                    for(Pattern p : abbcPatterns){
+                        System.out.println(p.toString());
+                    }
+                }
                 
                 //what changed from A to B. How was the reflected in B to C ?
                 //find similar transformations from a -> b as b -> c
 
-                //List<Transformation> deCorrelations = correlateRavensFigures(problem.getFigures().get("D"), problem.getFigures().get("E"));
-                //List<Transformation> efCorrelations = correlateRavensFigures(problem.getFigures().get("E"), problem.getFigures().get("F"));
+                List<Transformation> deCorrelations = correlateRavensFigures(problem.getFigures().get("D"), problem.getFigures().get("E"));
+                List<Transformation> efCorrelations = correlateRavensFigures(problem.getFigures().get("E"), problem.getFigures().get("F"));
+                List<Pattern> deefPatterns = Pattern.findPatterns(deCorrelations, efCorrelations);
+                //debug
+                for(Pattern p : deefPatterns){
+                    System.out.println(p.toString());
+                }
                 //what changed from A to B. How was the reflected in B to C ?
                 //find similar transformations from d -> e as e -> f
 
@@ -377,11 +389,26 @@ public class Agent {
                 }
 
                 System.out.println("Working with vertical axis");
-                //List<Transformation> adCorrelations = correlateRavensFigures(problem.getFigures().get("A"), problem.getFigures().get("D"));
-                //List<Transformation> dgCorrelations = correlateRavensFigures(problem.getFigures().get("D"), problem.getFigures().get("G"));
+                List<Transformation> adCorrelations = correlateRavensFigures(problem.getFigures().get("A"), problem.getFigures().get("D"));
+                List<Transformation> dgCorrelations = correlateRavensFigures(problem.getFigures().get("D"), problem.getFigures().get("G"));
+                List<Pattern> addgPatterns = Pattern.findPatterns(adCorrelations, dgCorrelations);
+                for(Pattern p : addgPatterns){
+                    System.out.println(p.toString());
+                }
 
-                //List<Transformation> beCorrelations = correlateRavensFigures(problem.getFigures().get("B"), problem.getFigures().get("E"));
-                //List<Transformation> ehCorrelations = correlateRavensFigures(problem.getFigures().get("E"), problem.getFigures().get("H"));
+                List<Transformation> beCorrelations = correlateRavensFigures(problem.getFigures().get("B"), problem.getFigures().get("E"));
+                List<Transformation> ehCorrelations = correlateRavensFigures(problem.getFigures().get("E"), problem.getFigures().get("H"));
+                List<Pattern> beehPatterns = Pattern.findPatterns(beCorrelations, ehCorrelations);
+                for(Pattern p : beehPatterns){
+                    System.out.println(p.toString());
+                }
+
+                //check for matching patterns between columns
+                List<List<Pattern>> vertMatchingPatterns = Pattern.findMatchingPatterns(addgPatterns, beehPatterns);
+                //matching pattern.. patterns should hold more weight than a correlation
+                if(vertMatchingPatterns.size() > 0){
+
+                }
 
                 List<Transformation> cfCorrelations = correlateRavensFigures(problem.getFigures().get("C"), problem.getFigures().get("F"));
 
@@ -390,9 +417,21 @@ public class Agent {
                     fiCandidateTransformations.add(correlateRavensFigures(problem.getFigures().get("F"), problem.getFigures().get(""+i)));    
                 }
 
+
                 double verticalHighScore = 0;
                 int verticalAnswer = 1; 
                 for(int i=0; i< fiCandidateTransformations.size(); i++){
+                    //check if this correlation matches a pattern
+                    if(vertMatchingPatterns.size() > 0){
+                        List<Pattern> cffiPatterns = Pattern.findPatterns(cfCorrelations, fiCandidateTransformations.get(i));
+                        List<List<Pattern>> addgcffiMatchingPatterns = Pattern.findMatchingPatterns(addgPatterns, cffiPatterns);
+                        List<List<Pattern>> beehcffiMatchingPatterns = Pattern.findMatchingPatterns(beehPatterns, cffiPatterns);
+                        if(addgcffiMatchingPatterns.size() > 0 || beehcffiMatchingPatterns.size() > 0){
+                            System.out.println("**** FOUND AN ANSWER "+(i+1)+" THAT MATCHES A PATTERN ****");
+                            verticalAnswer = i+1;
+                            break;
+                        }
+                    }
                     //score transformations for each
                     //score against a -> d
                     //score against d -> g
@@ -408,12 +447,20 @@ public class Agent {
 
                 System.out.println("Working with diagonal axis");
                 // d -> h -> c
-                //List<Transformation> dhCorrelations = correlateRavensFigures(problem.getFigures().get("D"), problem.getFigures().get("H"));
-                //List<Transformation> hcCorrelations = correlateRavensFigures(problem.getFigures().get("H"), problem.getFigures().get("C"));
+                List<Transformation> dhCorrelations = correlateRavensFigures(problem.getFigures().get("D"), problem.getFigures().get("H"));
+                List<Transformation> hcCorrelations = correlateRavensFigures(problem.getFigures().get("H"), problem.getFigures().get("C"));
+                List<Pattern> dhhcPatterns = Pattern.findPatterns(dhCorrelations, hcCorrelations);
+                for(Pattern p : dhhcPatterns){
+                    System.out.println(p.toString());
+                }
 
                 //g - b -> f
-                //List<Transformation> gbCorrelations = correlateRavensFigures(problem.getFigures().get("G"), problem.getFigures().get("B"));
-                //List<Transformation> bfCorrelations = correlateRavensFigures(problem.getFigures().get("B"), problem.getFigures().get("F"));
+                List<Transformation> gbCorrelations = correlateRavensFigures(problem.getFigures().get("G"), problem.getFigures().get("B"));
+                List<Transformation> bfCorrelations = correlateRavensFigures(problem.getFigures().get("B"), problem.getFigures().get("F"));
+                List<Pattern> gbbfPatterns = Pattern.findPatterns(gbCorrelations, bfCorrelations);
+                for(Pattern p : gbbfPatterns){
+                    System.out.println(p.toString());
+                }
 
                 //a -> e -> i 
                 List<Transformation> aeCorrelations = correlateRavensFigures(problem.getFigures().get("A"), problem.getFigures().get("E"));
@@ -511,13 +558,26 @@ public class Agent {
         return retVal;
     }
 
-    private List<Transformation> findSimilarTransformations(List<Transformation> first, List<Transformation> second){
+    /*private List<Transformation> findPattern(List<Transformation> first, List<Transformation> second){
         //may want to find major changes and then create a new transformation with just those transformation types
+        Transformation[] firstArray = first.toArray(new Transformation[0]);
+        Transformation[] secondArray = second.toArray(new Transformation[0]);
         //changed shape
+        for(Transformation t : firstArray){
+            if(t.changedShape){
+                for(Transformation st : secondArray){
+                    if(st.changedShape){
+                        //could have a pattern here
+
+                        break;
+                    }
+                }
+            }
+        }
         //changed fill
 
         return null;
-    }
+    }*/
 
     /**
     * Extract the highest similarity score between two Lists of transformations
