@@ -338,9 +338,11 @@ public class Agent {
             } else if (problemType.equals("3x3")) {
                 //use system of scorring correlation instead of permuations because they become very expensive 
                 //work with the horizontal axis first
+                
                 System.out.println("Working with horizontal axis");
                 List<Transformation> abCorrelations = correlateRavensFigures(problem.getFigures().get("A"), problem.getFigures().get("B"));
                 List<Transformation> bcCorrelations = correlateRavensFigures(problem.getFigures().get("B"), problem.getFigures().get("C"));
+                
                 //what changed from A to B. How was the reflected in B to C ?
                 //find similar transformations from a -> b as b -> c
 
@@ -446,46 +448,52 @@ public class Agent {
                     System.out.println("diagonal   "+diagonalAnswer+" : "+diagonalHighScore);
                     boolean disputeResolved = false;
                     
-                    //check for majority answer first
-                    //answer, count
-                    Map<Integer, Integer> majority = new HashMap<Integer, Integer>();
-                    int[] answers = new int[]{horizontalAnswer, verticalAnswer, diagonalAnswer};
-                    for(int i=0; i<answers.length; i++){
-                        if(!majority.containsKey(answers[i])){
-                            majority.put(answers[i], 1);
-                        } else {
-                            //found a majority (since there are only 3 possible answers)
-                            System.out.println("Found majority : "+answers[i]);
-                            retVal = answers[i] + "";
-                            disputeResolved = true;
-                            break;
+                    if(!disputeResolved){
+                        //check for majority answer first
+                        //answer, count
+                        Map<Integer, Integer> majority = new HashMap<Integer, Integer>();
+                        int[] answers = new int[]{horizontalAnswer, verticalAnswer, diagonalAnswer};
+                        for(int i=0; i<answers.length; i++){
+                            if(!majority.containsKey(answers[i])){
+                                majority.put(answers[i], 1);
+                            } else {
+                                //found a majority (since there are only 3 possible answers)
+                                System.out.println("Found majority : "+answers[i]);
+                                retVal = answers[i] + "";
+                                disputeResolved = true;
+                                break;
+                            }
                         }
                     }
 
-                    //check for highscore second
-                    boolean highScoreFound = false;
-                    double highestScore = Math.max(Math.max(horizontalHighScore, verticalHighScore), diagonalHighScore);
-                    if(highestScore == horizontalHighScore){
-                        System.out.println("found horizontalHighScore. Using");
-                        highScoreFound = true;
-                    }
-                    if(highestScore == verticalHighScore){
-                        if(!highScoreFound){
-                            retVal = verticalAnswer+"";
-                            System.out.println("found verticalHighScore. Using");
+                    if(!disputeResolved){
+                        //check for highscore second
+                        boolean highScoreFound = false;
+                        double highestScore = Math.max(Math.max(horizontalHighScore, verticalHighScore), diagonalHighScore);
+                        if(highestScore == horizontalHighScore){
+                            System.out.println("found horizontalHighScore. Using");
                             highScoreFound = true;
-                        } else {
-                            System.out.println("two of the same highscore with different answers");
                         }
-                    }
-                    if(highestScore == diagonalHighScore){
-                        if(!highScoreFound){
-                            retVal = diagonalAnswer+"";
-                            System.out.println("found diagonalHighScore. Using");
-                            highScoreFound = true;
-                        } else {
-                            System.out.println("two of the same highscore with different answers");
+                        if(highestScore == verticalHighScore){
+                            if(!highScoreFound){
+                                retVal = verticalAnswer+"";
+                                System.out.println("found verticalHighScore. Using");
+                                highScoreFound = true;
+                            } else {
+                                System.out.println("two of the same highscore with different answers");
+                            }
                         }
+                        if(highestScore == diagonalHighScore){
+                            if(!highScoreFound){
+                                retVal = diagonalAnswer+"";
+                                System.out.println("found diagonalHighScore. Using");
+                                highScoreFound = true;
+                            } else {
+                                System.out.println("two of the same highscore with different answers");
+                            }
+                        }
+                        if(highScoreFound)
+                            disputeResolved = true;
                     }
                     //returning 
                 }
