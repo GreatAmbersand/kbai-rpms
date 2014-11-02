@@ -1,4 +1,4 @@
-package project2;
+package project3;
 
 import java.util.*;
 import java.lang.*;
@@ -336,9 +336,160 @@ public class Agent {
                 //String dimensions = problemType.split("x")
 
             } else if (problemType.equals("3x3")) {
-                //deal with vertical, horizontal, and diagonal axes
+                //use system of scorring correlation instead of permuations because they become very expensive 
+                //work with the horizontal axis first
+                System.out.println("Working with horizontal axis");
+                List<Transformation> abCorrelations = correlateRavensFigures(problem.getFigures().get("A"), problem.getFigures().get("B"));
+                List<Transformation> bcCorrelations = correlateRavensFigures(problem.getFigures().get("B"), problem.getFigures().get("C"));
+                //what changed from A to B. How was the reflected in B to C ?
+                //find similar transformations from a -> b as b -> c
 
-                //String dimensions = problemType.split("x")
+                List<Transformation> deCorrelations = correlateRavensFigures(problem.getFigures().get("D"), problem.getFigures().get("E"));
+                List<Transformation> efCorrelations = correlateRavensFigures(problem.getFigures().get("E"), problem.getFigures().get("F"));
+                //what changed from A to B. How was the reflected in B to C ?
+                //find similar transformations from d -> e as e -> f
+
+                List<Transformation> ghCorrelations = correlateRavensFigures(problem.getFigures().get("G"), problem.getFigures().get("H"));
+
+                //find candidate tranformations between h -> i
+                List<List<Transformation>> hiCandidateTransformations = new ArrayList<List<Transformation>>();
+                for(int i=1; i<= 6; i++){
+                    hiCandidateTransformations.add(correlateRavensFigures(problem.getFigures().get("H"), problem.getFigures().get(""+i)));    
+                }
+
+                //find which correlation between h -> i would make the set of correlations g -> h, h -> i look like a -> b -> c and d -> e -> f
+                double horizontalHighScore = 0;
+                int horizontalAnswer = 1; 
+                for(int i=0; i< hiCandidateTransformations.size(); i++){
+                    //score transformations for each
+                    //score against a -> b
+                    //score against b -> c
+                    //score against d -> e
+                    //score against e -> f
+                    //score against g -> h
+                    double score = scoreTransformationSimilarity(ghCorrelations, hiCandidateTransformations.get(i), (i+1)+"");
+                    if(score > horizontalHighScore){
+                        horizontalHighScore = score;
+                        horizontalAnswer = i+1;
+                    }
+                }
+
+                System.out.println("Working with vertical axis");
+                List<Transformation> adCorrelations = correlateRavensFigures(problem.getFigures().get("A"), problem.getFigures().get("D"));
+                List<Transformation> dgCorrelations = correlateRavensFigures(problem.getFigures().get("D"), problem.getFigures().get("G"));
+
+                List<Transformation> beCorrelations = correlateRavensFigures(problem.getFigures().get("B"), problem.getFigures().get("E"));
+                List<Transformation> ehCorrelations = correlateRavensFigures(problem.getFigures().get("E"), problem.getFigures().get("H"));
+
+                List<Transformation> cfCorrelations = correlateRavensFigures(problem.getFigures().get("C"), problem.getFigures().get("F"));
+
+                List<List<Transformation>> fiCandidateTransformations = new ArrayList<List<Transformation>>();
+                for(int i=1; i<= 6; i++){
+                    fiCandidateTransformations.add(correlateRavensFigures(problem.getFigures().get("F"), problem.getFigures().get(""+i)));    
+                }
+
+                double verticalHighScore = 0;
+                int verticalAnswer = 1; 
+                for(int i=0; i< fiCandidateTransformations.size(); i++){
+                    //score transformations for each
+                    //score against a -> d
+                    //score against d -> g
+                    //score against b -> e
+                    //score against e -> h
+                    //score against c -> f
+                    double score = scoreTransformationSimilarity(cfCorrelations, fiCandidateTransformations.get(i), (i+1)+"");
+                    if(score > verticalHighScore){
+                        verticalHighScore = score;
+                        verticalAnswer = i+1;
+                    }
+                }
+
+                System.out.println("Working with diagonal axis");
+                // d -> h -> c
+                List<Transformation> dhCorrelations = correlateRavensFigures(problem.getFigures().get("D"), problem.getFigures().get("H"));
+                List<Transformation> hcCorrelations = correlateRavensFigures(problem.getFigures().get("H"), problem.getFigures().get("C"));
+
+                //g - b -> f
+                List<Transformation> gbCorrelations = correlateRavensFigures(problem.getFigures().get("G"), problem.getFigures().get("B"));
+                List<Transformation> bfCorrelations = correlateRavensFigures(problem.getFigures().get("B"), problem.getFigures().get("F"));
+
+                //a -> e -> i 
+                List<Transformation> aeCorrelations = correlateRavensFigures(problem.getFigures().get("A"), problem.getFigures().get("E"));
+
+                List<List<Transformation>> eiCandidateTransformations = new ArrayList<List<Transformation>>();
+                for(int i=1; i<= 6; i++){
+                    eiCandidateTransformations.add(correlateRavensFigures(problem.getFigures().get("E"), problem.getFigures().get(""+i)));    
+                }
+
+                double diagonalHighScore = 0;
+                int diagonalAnswer = 1; 
+                for(int i=0; i< eiCandidateTransformations.size(); i++){
+                    //score transformations for each
+                    //score against d -> h
+                    //score against h -> c
+                    //score against g -> b
+                    //score against b -> f
+                    //score against a -> e
+                    double score = scoreTransformationSimilarity(aeCorrelations, eiCandidateTransformations.get(i), (i+1)+"");
+                    if(score > diagonalHighScore){
+                        diagonalHighScore = score;
+                        diagonalAnswer = i+1;
+                    }
+                }
+
+                if(horizontalAnswer == verticalAnswer && verticalAnswer == diagonalAnswer){
+                    retVal = horizontalAnswer+"";
+                } else {
+                    System.out.println("dispute in answer :");
+                    System.out.println("horizontal "+horizontalAnswer+" : "+horizontalHighScore);
+                    System.out.println("vertical   "+verticalAnswer+" : "+verticalHighScore);
+                    System.out.println("diagonal   "+diagonalAnswer+" : "+diagonalHighScore);
+                    boolean disputeResolved = false;
+                    
+                    //check for majority answer first
+                    //answer, count
+                    Map<Integer, Integer> majority = new HashMap<Integer, Integer>();
+                    int[] answers = new int[]{horizontalAnswer, verticalAnswer, diagonalAnswer};
+                    for(int i=0; i<answers.length; i++){
+                        if(!majority.containsKey(answers[i])){
+                            majority.put(answers[i], 1);
+                        } else {
+                            //found a majority (since there are only 3 possible answers)
+                            System.out.println("Found majority : "+answers[i]);
+                            retVal = answers[i] + "";
+                            disputeResolved = true;
+                            break;
+                        }
+                    }
+
+                    //check for highscore second
+                    boolean highScoreFound = false;
+                    double highestScore = Math.max(Math.max(horizontalHighScore, verticalHighScore), diagonalHighScore);
+                    if(highestScore == horizontalHighScore){
+                        System.out.println("found horizontalHighScore. Using");
+                        highScoreFound = true;
+                    }
+                    if(highestScore == verticalHighScore){
+                        if(!highScoreFound){
+                            retVal = verticalAnswer+"";
+                            System.out.println("found verticalHighScore. Using");
+                            highScoreFound = true;
+                        } else {
+                            System.out.println("two of the same highscore with different answers");
+                        }
+                    }
+                    if(highestScore == diagonalHighScore){
+                        if(!highScoreFound){
+                            retVal = diagonalAnswer+"";
+                            System.out.println("found diagonalHighScore. Using");
+                            highScoreFound = true;
+                        } else {
+                            System.out.println("two of the same highscore with different answers");
+                        }
+                    }
+                    //returning 
+                }
+
             }
             String answer = problem.checkAnswer(retVal);
             //store answer somewhere to check after re-weighting
@@ -350,6 +501,14 @@ public class Agent {
         }
         System.out.println("returning "+retVal);
         return retVal;
+    }
+
+    private List<Transformation> findSimilarTransformations(List<Transformation> first, List<Transformation> second){
+        //may want to find major changes and then create a new transformation with just those transformation types
+        //changed shape
+        //changed fill
+
+        return null;
     }
 
     /**
