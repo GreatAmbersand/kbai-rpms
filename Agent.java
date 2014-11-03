@@ -360,6 +360,7 @@ public class Agent {
                 for(Pattern p : deefPatterns){
                     System.out.println(p.toString());
                 }
+                List<List<Pattern>> horizontalMatchingPatterns = Pattern.findMatchingPatterns(abbcPatterns, deefPatterns);
                 //what changed from A to B. How was the reflected in B to C ?
                 //find similar transformations from d -> e as e -> f
 
@@ -375,6 +376,16 @@ public class Agent {
                 double horizontalHighScore = 0;
                 int horizontalAnswer = 1; 
                 for(int i=0; i< hiCandidateTransformations.size(); i++){
+                    if(horizontalMatchingPatterns.size() > 0){
+                        List<Pattern> ghhiPatterns = Pattern.findPatterns(ghCorrelations, hiCandidateTransformations.get(i));
+                        List<List<Pattern>> abbcghhiMatchingPatterns = Pattern.findMatchingPatterns(abbcPatterns, ghhiPatterns);
+                        List<List<Pattern>> deefghhiMatchingPatterns = Pattern.findMatchingPatterns(deefPatterns, ghhiPatterns);
+                        if(abbcghhiMatchingPatterns.size() > 0 || deefghhiMatchingPatterns.size() > 0){
+                            System.out.println("**** FOUND AN ANSWER "+(i+1)+" THAT MATCHES A PATTERN ****");
+                            horizontalAnswer = i+1;
+                            break;
+                        }
+                    }
                     //score transformations for each
                     //score against a -> b
                     //score against b -> c
@@ -406,9 +417,9 @@ public class Agent {
                 //check for matching patterns between columns
                 List<List<Pattern>> vertMatchingPatterns = Pattern.findMatchingPatterns(addgPatterns, beehPatterns);
                 //matching pattern.. patterns should hold more weight than a correlation
-                if(vertMatchingPatterns.size() > 0){
+                /*if(vertMatchingPatterns.size() > 0){
 
-                }
+                }*/
 
                 List<Transformation> cfCorrelations = correlateRavensFigures(problem.getFigures().get("C"), problem.getFigures().get("F"));
 
@@ -462,6 +473,8 @@ public class Agent {
                     System.out.println(p.toString());
                 }
 
+                List<List<Pattern>> diagMatchingPatterns = Pattern.findMatchingPatterns(dhhcPatterns, gbbfPatterns);
+
                 //a -> e -> i 
                 List<Transformation> aeCorrelations = correlateRavensFigures(problem.getFigures().get("A"), problem.getFigures().get("E"));
 
@@ -474,6 +487,16 @@ public class Agent {
                 int diagonalAnswer = 1; 
                 for(int i=0; i< eiCandidateTransformations.size(); i++){
                     //score transformations for each
+                    if(diagMatchingPatterns.size() > 0){
+                        List<Pattern> aeeiPatterns = Pattern.findPatterns(aeCorrelations, eiCandidateTransformations.get(i));
+                        List<List<Pattern>> dhhcaeeiMatchingPatterns = Pattern.findMatchingPatterns(dhhcPatterns, aeeiPatterns);
+                        List<List<Pattern>> gbbfaeeiMatchingPatterns = Pattern.findMatchingPatterns(gbbfPatterns, aeeiPatterns);
+                        if(dhhcaeeiMatchingPatterns.size() > 0 || gbbfaeeiMatchingPatterns.size() > 0){
+                            System.out.println("**** FOUND AN ANSWER "+(i+1)+" THAT MATCHES A PATTERN ****");
+                            diagonalAnswer = i+1;
+                            break;
+                        }
+                    }
                     //score against d -> h
                     //score against h -> c
                     //score against g -> b
@@ -1102,10 +1125,25 @@ public class Agent {
                     }
 
                     //check if any of the positional attributes are the same
+                    //System.out.println("Checking if "+obj.getAttributes().get(j).getName()+" == "+toObject.getAttributes().get(k).getName()+" && is positional");
                     if(obj.getAttributes().get(j).getName().equals(toObject.getAttributes().get(k).getName()) && positionalAttributes.contains(obj.getAttributes().get(j).getName())){
                         System.out.println(""+obj.getAttributes().get(j).getName()+" in both objects");
                         currentCorrelation += 1;
                     }
+                }
+            }
+            ArrayList<String> toAttributeNames = new ArrayList<String>();
+            for(RavensAttribute ra : toObject.getAttributes()){
+                toAttributeNames.add(ra.getName());
+            }
+            ArrayList<String> fromAttributes = new ArrayList<String>();
+            for(RavensAttribute ra : obj.getAttributes()){
+                fromAttributes.add(ra.getName());
+            }
+            for(String attName : toAttributeNames){
+                //if to has an extra attribute subtract a single point
+                if(!fromAttributes.contains(attName)){
+                    currentCorrelation = currentCorrelation - 1;
                 }
             }
             //if not already mapped, map it
