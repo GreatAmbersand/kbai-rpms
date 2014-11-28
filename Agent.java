@@ -400,13 +400,14 @@ public class Agent {
                 }
 
                 System.out.println("Working with vertical axis");
+                //a -> d -> g
                 List<Transformation> adCorrelations = correlateRavensFigures(problem.getFigures().get("A"), problem.getFigures().get("D"));
                 List<Transformation> dgCorrelations = correlateRavensFigures(problem.getFigures().get("D"), problem.getFigures().get("G"));
                 List<Pattern> addgPatterns = Pattern.findPatterns(adCorrelations, dgCorrelations);
                 for(Pattern p : addgPatterns){
                     System.out.println(p.toString());
                 }
-
+                // b -> e -> h
                 List<Transformation> beCorrelations = correlateRavensFigures(problem.getFigures().get("B"), problem.getFigures().get("E"));
                 List<Transformation> ehCorrelations = correlateRavensFigures(problem.getFigures().get("E"), problem.getFigures().get("H"));
                 List<Pattern> beehPatterns = Pattern.findPatterns(beCorrelations, ehCorrelations);
@@ -421,6 +422,7 @@ public class Agent {
 
                 }*/
 
+                // c -> f -> #
                 List<Transformation> cfCorrelations = correlateRavensFigures(problem.getFigures().get("C"), problem.getFigures().get("F"));
 
                 List<List<Transformation>> fiCandidateTransformations = new ArrayList<List<Transformation>>();
