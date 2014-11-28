@@ -11,14 +11,13 @@ import java.util.ArrayList;
 import java.util.HashMap;
 
 /**
- * A single figure in a Raven's Progressive Matrix problem, comprised of a name 
- * and a list of RavensObjects.
+ * A single figure in a Raven's Progressive Matrix problem, comprised of a name,
+ * an Image, and a path to the image.
  * 
  */
-public class RavensFigure {
+public class VisualRavensFigure {
     private String name;
-    private ArrayList<RavensObject> objects;
-    private HashMap<String, RavensObject> objectsMap;
+    private String fullpath;
     
     /**
      * Creates a new figure for a Raven's Progressive Matrix given a name.
@@ -27,9 +26,9 @@ public class RavensFigure {
      * 
      * @param name the name of the figure
      */
-    public RavensFigure(String name) {
+    public VisualRavensFigure(String name,String fullpath) {
         this.name=name;
-        objects=new ArrayList<>();
+        this.fullpath=fullpath;
     }
     /**
      * Returns the name of the figure. The name of the figure will always match
@@ -52,11 +51,11 @@ public class RavensFigure {
         return name;
     }
     /**
-     * Returns an ArrayList of RavensObjects from the figure.
+     * Returns the full path to the original image representing the figure.
      * 
-     * @return an ArrayList of RavensObject
+     * @return the full path for the figure as a String
      */
-    public ArrayList<RavensObject> getObjects() {
-        return objects;
+    public String getPath() {
+        return fullpath;
     }
 }

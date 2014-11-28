@@ -14,9 +14,9 @@ import java.util.HashMap;
  * or 3x3), a String name, and a HashMap of figures.
  * 
  */
-public class RavensProblem {
+public class VisualRavensProblem {
     private String problemType;
-    private HashMap<String, RavensFigure> figures;
+    private HashMap<String, VisualRavensFigure> figures;
     private String name;
     private String correctAnswer;
     private String givenAnswer;
@@ -33,7 +33,7 @@ public class RavensProblem {
      * @param problemType the type of problem: 2x1, 2x2, or 3x3
      * @param correctAnswer the correct answer to the problem, a number 1 to 6
      */
-    public RavensProblem(String name,String problemType,String correctAnswer) {
+    public VisualRavensProblem(String name,String problemType,String correctAnswer) {
         this.name=name;
         this.problemType=problemType;
         this.correctAnswer=correctAnswer;
@@ -115,7 +115,7 @@ public class RavensProblem {
      * getFigures().get("G") would return the third row, first column of a 3x3
      * problem.
      * 
-     * The value for each key is the RavensFigure corresponding to that figure
+     * The value for each key is the VisualRavensFigure corresponding to that figure
      * of the problem.
      * 
      * In 2x1, the figures are named A, B, and C. A is to B as C is to one of
@@ -136,7 +136,7 @@ public class RavensProblem {
      * 
      * @return a HashMap of the RavensFigures in this problem
      */
-    public HashMap<String, RavensFigure> getFigures() {
+    public HashMap<String, VisualRavensFigure> getFigures() {
         return figures;
     }
     /**

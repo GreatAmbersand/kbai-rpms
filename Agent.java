@@ -1,4 +1,4 @@
-package project3;
+package project4;
 
 import java.util.*;
 import java.lang.*;
@@ -127,7 +127,7 @@ public class Agent {
      * @param problem the RavensProblem your agent should solve
      * @return your Agent's answer to this problem
      */
-    public String Solve(RavensProblem problem) {
+    public String Solve(VisualRavensProblem problem) {
 
         //default answer to 1
         //this should only stay unchanged if we don't recognize the problemType
